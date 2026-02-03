@@ -19,9 +19,8 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { useAuth } from '@/contexts/AuthContext';
 import { useWalletBalance } from '@/hooks/useWalletBalance';
 import { useUserSubscription } from '@/hooks/useUserSubscription';
-import { consultasCpfService } from '@/services/consultasCpfService';
 import { consultationApiService } from '@/services/consultationApiService';
-
+import { consultaNomeService } from '@/services/consultaNomeService';
 import { cookieUtils } from '@/utils/cookieUtils';
 import { getModulePrice } from '@/utils/modulePrice';
 import { useApiModules } from '@/hooks/useApiModules';
@@ -133,7 +132,7 @@ const ConsultarNomeCompleto = () => {
     setWalletBalance(apiWalletBalance);
   };
 
-  // Carregar histórico de consultas recentes (igual ao consultar-cpf-simples)
+  // Carregar histórico de consultas recentes (filtra por module_type = 'nome' e page_route)
   const loadRecentConsultations = async () => {
     if (!user) return;
     
@@ -141,13 +140,25 @@ const ConsultarNomeCompleto = () => {
       setRecentConsultationsLoading(true);
       console.log('📋 [RECENT_CONSULTATIONS_NOME] Carregando últimas 5 consultas por nome...');
       
-      // Buscar um lote maior para garantir 5 itens mesmo após o filtro por rota
+      // Buscar histórico geral e filtrar por consultas de nome
       const response = await consultationApiService.getConsultationHistory(50, 0);
       
       if (response.success && response.data && Array.isArray(response.data)) {
-        // Filtrar apenas consultas desta página (nome completo)
+        // Filtrar apenas consultas de nome completo (module_type = 'nome' ou page_route correspondente)
+        // E que tenham status 'completed' (ou seja, foram cobradas)
         const nomeConsultations = response.data
-          .filter((item: any) => (item?.metadata?.page_route || '') === window.location.pathname)
+          .filter((item: any) => {
+            const moduleType = (item?.module_type || '').toLowerCase();
+            const pageRoute = item?.metadata?.page_route || '';
+            const status = item?.status || '';
+            const cost = parseFloat(item?.cost || 0);
+            
+            // Só mostrar consultas que foram cobradas (completed e custo > 0)
+            const isNomeConsulta = moduleType === 'nome' || pageRoute === '/dashboard/consultar-nome-completo';
+            const foiCobrada = status === 'completed' && cost > 0;
+            
+            return isNomeConsulta && foiCobrada;
+          })
           .map((consultation: any) => ({
             id: `consultation-${consultation.id}`,
             type: 'consultation',
@@ -337,76 +348,70 @@ const ConsultarNomeCompleto = () => {
         setResultados(normalizedData.resultados || []);
         setTotalEncontrados(normalizedData.total_encontrados || 0);
 
-        // Só cobrar se encontrou resultados
+        // Só cobrar e registrar se encontrou resultados
         const temResultados = normalizedData.total_encontrados > 0;
-        
-        // Registrar consulta no histórico (só cobra se tem resultados)
-        const saldoUsado = planBalance >= finalPrice ? 'plano' : 
-          (planBalance > 0 && (planBalance + walletBalance) >= finalPrice) ? 'misto' : 'carteira';
-
-        const registroPayload = {
-          user_id: parseInt(user.id),
-          module_type: 'nome',
-          document: inputValue,
-          cost: temResultados ? finalPrice : 0, // Só cobra se encontrou resultados
-          status: temResultados ? 'completed' : 'naoencontrado',
-          result_data: normalizedData,
-          ip_address: window.location.hostname,
-          user_agent: navigator.userAgent,
-          saldo_usado: temResultados ? saldoUsado : 'nenhum',
-          metadata: {
-            source: 'consultar-nome-completo',
-            page_route: window.location.pathname,
-            module_title: currentModule?.title || 'NOME COMPLETO',
-            discount: discount,
-            original_price: originalPrice,
-            discounted_price: finalPrice,
-            final_price: temResultados ? finalPrice : 0,
-            subscription_discount: hasActiveSubscription,
-            plan_type: userPlan,
-            module_id: 156,
-            timestamp: new Date().toISOString(),
-            saldo_usado: temResultados ? saldoUsado : 'nenhum',
-            link_resultado: normalizedData.link,
-            total_encontrados: normalizedData.total_encontrados
-          }
-        };
-
-        try {
-          await consultasCpfService.create(registroPayload as any);
-          console.log('✅ [CONSULTA_NOME] Consulta registrada no histórico');
-          // Recarregar histórico após registrar nova consulta
-          await loadRecentConsultations();
-        } catch (regError) {
-          console.error('❌ [CONSULTA_NOME] Erro ao registrar consulta:', regError);
-        }
 
         if (temResultados) {
-          toast.success(
-            <div className="flex flex-col gap-0.5">
-              <div>✅ {normalizedData.total_encontrados} registro(s) encontrado(s)!</div>
-              <div className="text-sm text-muted-foreground">
-                Valor cobrado: R$ {finalPrice.toFixed(2)}
-              </div>
-            </div>,
-            { duration: 4000 }
-          );
-          
-          // Só desconta saldo se encontrou resultados
-          await reloadApiBalance();
-          loadBalances();
-          
-          if (saldoUsado === 'plano') {
-            setPlanBalance(Math.max(0, planBalance - finalPrice));
-          } else if (saldoUsado === 'misto') {
-            const remaining = Math.max(0, finalPrice - planBalance);
-            setPlanBalance(0);
-            setWalletBalance(Math.max(0, walletBalance - remaining));
-          } else {
-            setWalletBalance(Math.max(0, walletBalance - finalPrice));
-          }
+          // Registrar consulta e debitar saldo via endpoint dedicado
+          const registroPayload = {
+            document: inputValue,
+            cost: finalPrice,
+            result_data: normalizedData,
+            module_type: 'nome',
+            metadata: {
+              source: 'consultar-nome-completo',
+              page_route: window.location.pathname,
+              module_title: currentModule?.title || 'NOME COMPLETO',
+              discount: discount,
+              original_price: originalPrice,
+              discounted_price: finalPrice,
+              final_price: finalPrice,
+              subscription_discount: hasActiveSubscription,
+              plan_type: userPlan,
+              module_id: currentModule?.id || 156,
+              timestamp: new Date().toISOString(),
+              link_resultado: normalizedData.link,
+              total_encontrados: normalizedData.total_encontrados
+            }
+          };
 
-          window.dispatchEvent(new CustomEvent('balanceUpdated', { detail: { shouldAnimate: true, immediate: true } }));
+          try {
+            console.log('📤 [CONSULTA_NOME] Enviando registro e cobrança...');
+            const registroResult = await consultaNomeService.create(registroPayload);
+            
+            if (registroResult.success) {
+              console.log('✅ [CONSULTA_NOME] Consulta registrada e saldo debitado:', registroResult.data);
+              
+              toast.success(
+                <div className="flex flex-col gap-0.5">
+                  <div>✅ {normalizedData.total_encontrados} registro(s) encontrado(s)!</div>
+                  <div className="text-sm text-muted-foreground">
+                    Valor cobrado: R$ {finalPrice.toFixed(2)}
+                  </div>
+                </div>,
+                { duration: 4000 }
+              );
+              
+              // Atualizar saldos locais com valores retornados pelo backend
+              if (registroResult.data?.new_balance) {
+                setPlanBalance(registroResult.data.new_balance.saldo_plano);
+                setWalletBalance(registroResult.data.new_balance.saldo);
+              }
+              
+              // Recarregar saldo e histórico
+              await reloadApiBalance();
+              loadBalances();
+              await loadRecentConsultations();
+              
+              window.dispatchEvent(new CustomEvent('balanceUpdated', { detail: { shouldAnimate: true, immediate: true } }));
+            } else {
+              console.error('❌ [CONSULTA_NOME] Erro ao registrar:', registroResult.error);
+              toast.error(registroResult.error || 'Erro ao registrar consulta');
+            }
+          } catch (regError) {
+            console.error('❌ [CONSULTA_NOME] Erro ao registrar consulta:', regError);
+            toast.error('Erro ao registrar consulta e debitar saldo');
+          }
         } else {
           toast.warning("Nenhum registro encontrado para este nome. Não houve cobrança.", { duration: 4000 });
         }
