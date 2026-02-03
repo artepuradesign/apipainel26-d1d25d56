@@ -55,7 +55,14 @@ const ConsultarNomeCompleto = () => {
   // Estados para histórico de consultas (igual ao consultar-cpf-simples)
   const [recentConsultations, setRecentConsultations] = useState<any[]>([]);
   const [recentConsultationsLoading, setRecentConsultationsLoading] = useState(false);
-
+  
+  // Estados para estatísticas
+  const [consultationStats, setConsultationStats] = useState({
+    today: 0,
+    total: 0,
+    completed: 0,
+    totalSpent: 0
+  });
   const isMobile = useIsMobile();
   const resultRef = useRef<HTMLDivElement>(null);
   const progressTimerRef = useRef<number | null>(null);
@@ -138,27 +145,46 @@ const ConsultarNomeCompleto = () => {
     
     try {
       setRecentConsultationsLoading(true);
-      console.log('📋 [RECENT_CONSULTATIONS_NOME] Carregando últimas 5 consultas por nome...');
+      console.log('📋 [RECENT_CONSULTATIONS_NOME] Carregando últimas consultas por nome...');
       
       // Buscar histórico geral e filtrar por consultas de nome
-      const response = await consultationApiService.getConsultationHistory(50, 0);
+      const response = await consultationApiService.getConsultationHistory(100, 0);
       
       if (response.success && response.data && Array.isArray(response.data)) {
         // Filtrar apenas consultas de nome completo (module_type = 'nome' ou page_route correspondente)
         // E que tenham status 'completed' (ou seja, foram cobradas)
-        const nomeConsultations = response.data
-          .filter((item: any) => {
-            const moduleType = (item?.module_type || '').toLowerCase();
-            const pageRoute = item?.metadata?.page_route || '';
-            const status = item?.status || '';
-            const cost = parseFloat(item?.cost || 0);
-            
-            // Só mostrar consultas que foram cobradas (completed e custo > 0)
-            const isNomeConsulta = moduleType === 'nome' || pageRoute === '/dashboard/consultar-nome-completo';
-            const foiCobrada = status === 'completed' && cost > 0;
-            
-            return isNomeConsulta && foiCobrada;
-          })
+        const allNomeConsultations = response.data.filter((item: any) => {
+          const moduleType = (item?.module_type || '').toLowerCase();
+          const pageRoute = item?.metadata?.page_route || '';
+          const status = item?.status || '';
+          const cost = parseFloat(item?.cost || 0);
+          
+          // Só mostrar consultas que foram cobradas (completed e custo > 0)
+          const isNomeConsulta = moduleType === 'nome' || pageRoute === '/dashboard/consultar-nome-completo';
+          const foiCobrada = status === 'completed' && cost > 0;
+          
+          return isNomeConsulta && foiCobrada;
+        });
+        
+        // Calcular estatísticas
+        const today = new Date().toDateString();
+        const todayCount = allNomeConsultations.filter((c: any) => 
+          new Date(c.created_at).toDateString() === today
+        ).length;
+        
+        const totalSpent = allNomeConsultations.reduce((sum: number, c: any) => 
+          sum + parseFloat(c.cost || 0), 0
+        );
+        
+        setConsultationStats({
+          today: todayCount,
+          total: allNomeConsultations.length,
+          completed: allNomeConsultations.length, // Todas são completed
+          totalSpent: totalSpent
+        });
+        
+        // Mapear e pegar apenas as 5 mais recentes para exibição
+        const nomeConsultations = allNomeConsultations
           .map((consultation: any) => ({
             id: `consultation-${consultation.id}`,
             type: 'consultation',
@@ -179,13 +205,16 @@ const ConsultarNomeCompleto = () => {
         
         setRecentConsultations(nomeConsultations);
         console.log('✅ [RECENT_CONSULTATIONS_NOME] Últimas consultas carregadas:', nomeConsultations.length);
+        console.log('📊 [RECENT_CONSULTATIONS_NOME] Estatísticas:', { todayCount, total: allNomeConsultations.length, totalSpent });
       } else {
         console.warn('⚠️ [RECENT_CONSULTATIONS_NOME] Nenhuma consulta encontrada');
         setRecentConsultations([]);
+        setConsultationStats({ today: 0, total: 0, completed: 0, totalSpent: 0 });
       }
     } catch (error) {
       console.error('❌ [RECENT_CONSULTATIONS_NOME] Erro ao carregar consultas:', error);
       setRecentConsultations([]);
+      setConsultationStats({ today: 0, total: 0, completed: 0, totalSpent: 0 });
     } finally {
       setRecentConsultationsLoading(false);
     }
@@ -970,6 +999,61 @@ const ConsultarNomeCompleto = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Cards de Estatísticas */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
+        <Card className="w-full">
+          <CardContent className="p-3 sm:p-4">
+            <div className="text-center">
+              <h3 className="text-base sm:text-lg lg:text-xl font-bold text-primary truncate">
+                {consultationStats.today}
+              </h3>
+              <p className="text-xs sm:text-sm text-muted-foreground mt-1 break-words">
+                Consultas Hoje
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="w-full">
+          <CardContent className="p-3 sm:p-4">
+            <div className="text-center">
+              <h3 className="text-base sm:text-lg lg:text-xl font-bold text-primary truncate">
+                {consultationStats.total}
+              </h3>
+              <p className="text-xs sm:text-sm text-muted-foreground mt-1 break-words">
+                Total de Consultas
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="w-full">
+          <CardContent className="p-3 sm:p-4">
+            <div className="text-center">
+              <h3 className="text-base sm:text-lg lg:text-xl font-bold text-green-600 truncate">
+                {consultationStats.completed}
+              </h3>
+              <p className="text-xs sm:text-sm text-muted-foreground mt-1 break-words">
+                Concluídas
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="w-full">
+          <CardContent className="p-3 sm:p-4">
+            <div className="text-center">
+              <h3 className="text-base sm:text-lg lg:text-xl font-bold text-primary truncate">
+                R$ {consultationStats.totalSpent.toFixed(2).replace('.', ',')}
+              </h3>
+              <p className="text-xs sm:text-sm text-muted-foreground mt-1 break-words">
+                Total Gasto
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
     </div>
   );
