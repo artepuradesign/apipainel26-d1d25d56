@@ -20,6 +20,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useWalletBalance } from '@/hooks/useWalletBalance';
 import { useUserSubscription } from '@/hooks/useUserSubscription';
 import { consultasCpfService } from '@/services/consultasCpfService';
+import { consultationApiService } from '@/services/consultationApiService';
 
 import { cookieUtils } from '@/utils/cookieUtils';
 import { getModulePrice } from '@/utils/modulePrice';
@@ -51,6 +52,10 @@ const ConsultarNomeCompleto = () => {
   const [planBalance, setPlanBalance] = useState(0);
   const [modulePrice, setModulePrice] = useState(0);
   const [modulePriceLoading, setModulePriceLoading] = useState(true);
+  
+  // Estados para histórico de consultas (igual ao consultar-cpf-simples)
+  const [recentConsultations, setRecentConsultations] = useState<any[]>([]);
+  const [recentConsultationsLoading, setRecentConsultationsLoading] = useState(false);
 
   const isMobile = useIsMobile();
   const resultRef = useRef<HTMLDivElement>(null);
@@ -91,11 +96,12 @@ const ConsultarNomeCompleto = () => {
 
   const planType = getPlanType(userPlan);
 
-  // Carregar saldo da API
+  // Carregar saldo da API e histórico
   useEffect(() => {
     if (user) {
       loadBalances();
       reloadApiBalance();
+      loadRecentConsultations();
     }
   }, [user, reloadApiBalance]);
 
@@ -125,6 +131,53 @@ const ConsultarNomeCompleto = () => {
     const apiWalletBalance = balance.saldo || 0;
     setPlanBalance(apiPlanBalance);
     setWalletBalance(apiWalletBalance);
+  };
+
+  // Carregar histórico de consultas recentes (igual ao consultar-cpf-simples)
+  const loadRecentConsultations = async () => {
+    if (!user) return;
+    
+    try {
+      setRecentConsultationsLoading(true);
+      console.log('📋 [RECENT_CONSULTATIONS_NOME] Carregando últimas 5 consultas por nome...');
+      
+      // Buscar um lote maior para garantir 5 itens mesmo após o filtro por rota
+      const response = await consultationApiService.getConsultationHistory(50, 0);
+      
+      if (response.success && response.data && Array.isArray(response.data)) {
+        // Filtrar apenas consultas desta página (nome completo)
+        const nomeConsultations = response.data
+          .filter((item: any) => (item?.metadata?.page_route || '') === window.location.pathname)
+          .map((consultation: any) => ({
+            id: `consultation-${consultation.id}`,
+            type: 'consultation',
+            module_type: consultation?.metadata?.module_title || 'NOME COMPLETO',
+            document: consultation.document,
+            cost: consultation.cost,
+            amount: -Math.abs(consultation.cost),
+            status: consultation.status,
+            created_at: consultation.created_at,
+            updated_at: consultation.updated_at,
+            description: `Consulta Nome: ${consultation.document}`,
+            result_data: consultation.result_data,
+            metadata: consultation.metadata
+          }))
+          // Mais recente primeiro
+          .sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+          .slice(0, 5);
+        
+        setRecentConsultations(nomeConsultations);
+        console.log('✅ [RECENT_CONSULTATIONS_NOME] Últimas consultas carregadas:', nomeConsultations.length);
+      } else {
+        console.warn('⚠️ [RECENT_CONSULTATIONS_NOME] Nenhuma consulta encontrada');
+        setRecentConsultations([]);
+      }
+    } catch (error) {
+      console.error('❌ [RECENT_CONSULTATIONS_NOME] Erro ao carregar consultas:', error);
+      setRecentConsultations([]);
+    } finally {
+      setRecentConsultationsLoading(false);
+    }
   };
 
   const loadModulePrice = () => {
@@ -284,7 +337,10 @@ const ConsultarNomeCompleto = () => {
         setResultados(normalizedData.resultados || []);
         setTotalEncontrados(normalizedData.total_encontrados || 0);
 
-        // Registrar consulta no histórico
+        // Só cobrar se encontrou resultados
+        const temResultados = normalizedData.total_encontrados > 0;
+        
+        // Registrar consulta no histórico (só cobra se tem resultados)
         const saldoUsado = planBalance >= finalPrice ? 'plano' : 
           (planBalance > 0 && (planBalance + walletBalance) >= finalPrice) ? 'misto' : 'carteira';
 
@@ -292,12 +348,12 @@ const ConsultarNomeCompleto = () => {
           user_id: parseInt(user.id),
           module_type: 'nome',
           document: inputValue,
-          cost: finalPrice,
-          status: normalizedData.total_encontrados > 0 ? 'completed' : 'naoencontrado',
+          cost: temResultados ? finalPrice : 0, // Só cobra se encontrou resultados
+          status: temResultados ? 'completed' : 'naoencontrado',
           result_data: normalizedData,
           ip_address: window.location.hostname,
           user_agent: navigator.userAgent,
-          saldo_usado: saldoUsado,
+          saldo_usado: temResultados ? saldoUsado : 'nenhum',
           metadata: {
             source: 'consultar-nome-completo',
             page_route: window.location.pathname,
@@ -305,12 +361,12 @@ const ConsultarNomeCompleto = () => {
             discount: discount,
             original_price: originalPrice,
             discounted_price: finalPrice,
-            final_price: finalPrice,
+            final_price: temResultados ? finalPrice : 0,
             subscription_discount: hasActiveSubscription,
             plan_type: userPlan,
             module_id: 156,
             timestamp: new Date().toISOString(),
-            saldo_usado: saldoUsado,
+            saldo_usado: temResultados ? saldoUsado : 'nenhum',
             link_resultado: normalizedData.link,
             total_encontrados: normalizedData.total_encontrados
           }
@@ -319,11 +375,13 @@ const ConsultarNomeCompleto = () => {
         try {
           await consultasCpfService.create(registroPayload as any);
           console.log('✅ [CONSULTA_NOME] Consulta registrada no histórico');
+          // Recarregar histórico após registrar nova consulta
+          await loadRecentConsultations();
         } catch (regError) {
           console.error('❌ [CONSULTA_NOME] Erro ao registrar consulta:', regError);
         }
 
-        if (normalizedData.total_encontrados > 0) {
+        if (temResultados) {
           toast.success(
             <div className="flex flex-col gap-0.5">
               <div>✅ {normalizedData.total_encontrados} registro(s) encontrado(s)!</div>
@@ -333,24 +391,25 @@ const ConsultarNomeCompleto = () => {
             </div>,
             { duration: 4000 }
           );
-        } else {
-          toast.warning("Nenhum registro encontrado para este nome", { duration: 4000 });
-        }
+          
+          // Só desconta saldo se encontrou resultados
+          await reloadApiBalance();
+          loadBalances();
+          
+          if (saldoUsado === 'plano') {
+            setPlanBalance(Math.max(0, planBalance - finalPrice));
+          } else if (saldoUsado === 'misto') {
+            const remaining = Math.max(0, finalPrice - planBalance);
+            setPlanBalance(0);
+            setWalletBalance(Math.max(0, walletBalance - remaining));
+          } else {
+            setWalletBalance(Math.max(0, walletBalance - finalPrice));
+          }
 
-        await reloadApiBalance();
-        loadBalances();
-        
-        if (saldoUsado === 'plano') {
-          setPlanBalance(Math.max(0, planBalance - finalPrice));
-        } else if (saldoUsado === 'misto') {
-          const remaining = Math.max(0, finalPrice - planBalance);
-          setPlanBalance(0);
-          setWalletBalance(Math.max(0, walletBalance - remaining));
+          window.dispatchEvent(new CustomEvent('balanceUpdated', { detail: { shouldAnimate: true, immediate: true } }));
         } else {
-          setWalletBalance(Math.max(0, walletBalance - finalPrice));
+          toast.warning("Nenhum registro encontrado para este nome. Não houve cobrança.", { duration: 4000 });
         }
-
-        window.dispatchEvent(new CustomEvent('balanceUpdated', { detail: { shouldAnimate: true, immediate: true } }));
 
         setTimeout(() => {
           resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -725,6 +784,187 @@ const ConsultarNomeCompleto = () => {
           </CardContent>
         </Card>
       )}
+
+      {/* Últimas Consultas - Mesmo layout do consultar-cpf-simples */}
+      <Card className="w-full">
+        <CardHeader className="pb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <CardTitle className={`flex items-center ${isMobile ? 'text-base' : 'text-lg sm:text-xl lg:text-2xl'}`}>
+              <FileText className={`mr-2 flex-shrink-0 ${isMobile ? 'h-4 w-4' : 'h-4 w-4 sm:h-5 sm:w-5'}`} />
+              <span className="truncate">Últimas Consultas</span>
+            </CardTitle>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {recentConsultationsLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+              <span className="ml-3 text-muted-foreground">Carregando consultas...</span>
+            </div>
+          ) : recentConsultations.length > 0 ? (
+            <>
+              {(() => {
+                const formatFullDate = (dateString: string) => {
+                  const date = new Date(dateString);
+                  return date.toLocaleString('pt-BR', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                  });
+                };
+
+                const handleLoadConsultation = (consultation: any) => {
+                  // Exibir consulta na mesma tela sem cobrar novamente
+                  if (consultation?.result_data) {
+                    const data = consultation.result_data;
+                    setResultados(data.resultados || []);
+                    setTotalEncontrados(data.total_encontrados || 0);
+                    setResultadoLink(data.link || null);
+                    setNomeCompleto(consultation.document);
+
+                    // Scroll suave para a seção de resultados
+                    setTimeout(() => {
+                      resultRef.current?.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start',
+                      });
+                    }, 100);
+
+                    toast.success('Consulta carregada do histórico (sem cobrança)', { duration: 2000 });
+                  } else {
+                    toast.error('Dados da consulta não disponíveis');
+                  }
+                };
+
+                if (isMobile) {
+                  return (
+                    <div className="space-y-2">
+                      {recentConsultations.map((consultation) => (
+                        <button
+                          key={consultation.id}
+                          type="button"
+                          onClick={() => handleLoadConsultation(consultation)}
+                          className="w-full text-left rounded-md border border-border bg-card px-3 py-2"
+                        >
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="min-w-0">
+                              <div className="font-medium text-xs truncate">
+                                {consultation.document || 'Nome consultado'}
+                              </div>
+                              <div className="text-[11px] text-muted-foreground mt-0.5 truncate">
+                                {consultation.metadata?.total_encontrados || 0} resultado(s)
+                              </div>
+                              <div className="text-xs text-muted-foreground mt-0.5">
+                                {formatFullDate(consultation.created_at)}
+                              </div>
+                            </div>
+
+                            {/* No mobile: bolinha colorida conforme status */}
+                            <span
+                              className={
+                                consultation.status === 'completed'
+                                  ? 'mt-0.5 inline-flex h-2.5 w-2.5 flex-shrink-0 rounded-full bg-success'
+                                  : 'mt-0.5 inline-flex h-2.5 w-2.5 flex-shrink-0 rounded-full bg-muted'
+                              }
+                              aria-label={consultation.status === 'completed' ? 'Concluída' : 'Não encontrado'}
+                              title={consultation.status === 'completed' ? 'Concluída' : 'Não encontrado'}
+                            />
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  );
+                }
+
+                return (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="min-w-[200px] whitespace-nowrap">Nome Consultado</TableHead>
+                        <TableHead className="min-w-[100px] whitespace-nowrap">Resultados</TableHead>
+                        <TableHead className="min-w-[180px] whitespace-nowrap">Data e Hora</TableHead>
+                        <TableHead className="w-28 text-right whitespace-nowrap">Valor</TableHead>
+                        <TableHead className="w-28 text-center whitespace-nowrap">Status</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {recentConsultations.map((consultation) => {
+                        const consultationValue = consultation.cost || consultation.amount || 0;
+                        const numericValue =
+                          typeof consultationValue === 'string'
+                            ? parseFloat(consultationValue.toString().replace(',', '.'))
+                            : Number(consultationValue) || 0;
+
+                        return (
+                          <TableRow
+                            key={consultation.id}
+                            className="cursor-pointer"
+                            onClick={() => handleLoadConsultation(consultation)}
+                          >
+                            <TableCell className="text-xs sm:text-sm whitespace-nowrap truncate max-w-[200px]">
+                              {consultation.document || 'Nome consultado'}
+                            </TableCell>
+                            <TableCell className="text-xs sm:text-sm whitespace-nowrap">
+                              {consultation.metadata?.total_encontrados || 0} encontrado(s)
+                            </TableCell>
+                            <TableCell className="text-xs sm:text-sm whitespace-nowrap">
+                              {formatFullDate(consultation.created_at)}
+                            </TableCell>
+                            <TableCell className="text-right text-xs sm:text-sm font-medium text-destructive whitespace-nowrap">
+                              {numericValue > 0 ? `R$ ${numericValue.toFixed(2).replace('.', ',')}` : 'Grátis'}
+                            </TableCell>
+                            <TableCell className="text-center">
+                              <Badge
+                                variant={consultation.status === 'completed' ? 'secondary' : 'outline'}
+                                className={
+                                  consultation.status === 'completed'
+                                    ? 'text-xs rounded-full bg-foreground text-background hover:bg-foreground/90'
+                                    : 'text-xs rounded-full'
+                                }
+                              >
+                                {consultation.status === 'completed' ? 'Concluída' : 'Não encontrado'}
+                              </Badge>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                );
+              })()}
+            </>
+          ) : (
+            <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+              <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                Nenhuma consulta encontrada
+              </h3>
+              <p className="text-sm">
+                Suas consultas realizadas aparecerão aqui
+              </p>
+            </div>
+          )}
+          
+          {recentConsultations.length > 0 && (
+            <div className="text-center pt-4 mt-4 border-t border-border">
+              <Button 
+                variant="outline" 
+                size={isMobile ? "sm" : "sm"}
+                onClick={() => navigate('/dashboard/historico-consultas-cpf')}
+                className="text-primary border-primary hover:bg-muted"
+              >
+                <FileText className={`mr-2 ${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} />
+                <span className={isMobile ? 'text-xs' : 'text-sm'}>
+                  Ver Histórico Completo
+                </span>
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
     </div>
   );
