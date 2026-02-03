@@ -75,6 +75,8 @@ if (strpos($path, '/auth') === 0) {
     require_once __DIR__ . '/payments.php';
 } elseif (strpos($path, '/consultations') === 0) {
     require_once __DIR__ . '/consultations.php';
+} elseif (strpos($path, '/consultas-nome') === 0) {
+    require_once __DIR__ . '/consultas-nome.php';
 } elseif (strpos($path, '/consultas') === 0) {
     require_once __DIR__ . '/consultas.php';
 } elseif (strpos($path, '/wallet') === 0) {
