@@ -660,8 +660,8 @@ const ConsultarNomeCompleto = () => {
           </CardContent>
         </Card>
 
-        {/* Card Consulta Personalizada (desktop apenas) */}
-        {!isMobile && (
+        {/* Card Consulta Personalizada (desktop apenas, ocultar quando há resultados) */}
+        {!isMobile && resultados.length === 0 && (
           <Card className="dark:bg-gray-800 dark:border-gray-700 w-full">
             <CardHeader className="pb-4">
               <CardTitle className="flex items-center text-lg sm:text-xl lg:text-2xl">
