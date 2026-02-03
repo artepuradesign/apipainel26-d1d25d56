@@ -172,6 +172,13 @@ try {
         include __DIR__ . '/src/routes/consultations.php';
         exit();
     }
+
+    // Consultas por Nome Completo (deve vir antes de /consultas, pois /consultas-nome também começa com /consultas)
+    if (strpos($endpoint, '/consultas-nome') === 0) {
+        error_log("MAIN ROUTER: Redirecionando para consultas-nome.php - endpoint: {$endpoint}");
+        include __DIR__ . '/src/routes/consultas-nome.php';
+        exit();
+    }
     
     // Consultas - sistema de consultas CPF/CNPJ/etc
     if (strpos($endpoint, '/consultas') === 0) {
