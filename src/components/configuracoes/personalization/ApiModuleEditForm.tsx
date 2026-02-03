@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ArrowLeft, Save, AlertCircle } from 'lucide-react';
 import { Module, Panel } from '@/utils/apiService';
 import { toast } from 'sonner';
+import IconSelector from './IconSelector';
 
 interface ApiModuleEditFormProps {
   module: Module;
@@ -138,10 +139,6 @@ const ApiModuleEditForm = ({ module, panels, onSubmit, onCancel }: ApiModuleEdit
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const iconOptions = [
-    'Package', 'User', 'Building', 'Search', 'Phone', 'Camera', 
-    'Shield', 'TrendingUp', 'FileText', 'BarChart', 'Car', 'History'
-  ];
 
   return (
     <div className="w-full max-w-4xl mx-auto">
@@ -247,24 +244,12 @@ const ApiModuleEditForm = ({ module, panels, onSubmit, onCancel }: ApiModuleEdit
 
             {/* Ícone e Cor */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="icon">Ícone</Label>
-                <Select 
-                  value={formData.icon} 
-                  onValueChange={(value) => handleChange('icon', value)}
-                  disabled={isSubmitting}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {iconOptions.map((icon) => (
-                      <SelectItem key={icon} value={icon}>
-                        {icon}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              <div className="w-full">
+                <IconSelector
+                  value={formData.icon}
+                  onChange={(value) => handleChange('icon', value)}
+                  label="Ícone"
+                />
               </div>
 
               <div>
