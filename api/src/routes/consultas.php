@@ -72,7 +72,8 @@ switch ($method) {
         break;
         
     case 'POST':
-        if (strpos($path, '/consultas') !== false) {
+        // IMPORTANTE: /consultas-nome/* não pode cair aqui (também contém "/consultas" no path)
+        if (preg_match('#/consultas(/|$)#', $path) && strpos($path, '/consultas-nome') === false) {
             // Realizar consulta (CPF, CNPJ, Veículo)
             try {
                 error_log("CONSULTAS_ROUTE: Iniciando criação de consulta");

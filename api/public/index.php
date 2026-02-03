@@ -100,6 +100,10 @@ try {
     } elseif (strpos($uri, '/cupons') !== false || strpos($uri, '/validate-cupom') !== false || strpos($uri, '/use-cupom') !== false || strpos($uri, '/cupom-historico') !== false) {
         error_log("ROUTING: Direcionando para cupons (endpoints diretos)");
         require_once __DIR__ . '/../src/routes/cupons.php';
+    } elseif (strpos($uri, '/consultas-nome') === 0) {
+        // IMPORTANTE: precisa vir antes de /consultas, pois /consultas-nome também começa com /consultas
+        error_log("ROUTING: Direcionando para consultas por nome");
+        require_once __DIR__ . '/../src/routes/consultas-nome.php';
     } elseif (strpos($uri, '/consultas') === 0 || strpos($uri, '/cpf/cadastrar') !== false) {
         error_log("ROUTING: Direcionando para consultas");
         require_once __DIR__ . '/../src/routes/consultas.php';
