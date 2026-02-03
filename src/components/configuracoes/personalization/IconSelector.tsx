@@ -9,7 +9,12 @@ import {
   Camera, Phone, Mail, MapPin, Heart, Star, Calendar, Clock, 
   Settings, Database, Cloud, Lock, Key, Eye, Download, Upload,
   BarChart, PieChart, LineChart, Edit, Trash, Plus, Check, X,
-  Home, Globe, Zap, Target, Award, Gift, Flag, Bell, MessageCircle
+  Home, Globe, Zap, Target, Award, Gift, Flag, Bell, MessageCircle,
+  // 20 novos ícones adicionados
+  Activity, Briefcase, Calculator, CreditCard, DollarSign, Fingerprint,
+  Folder, HardDrive, Headphones, Image, Laptop, Layers, Link, Map,
+  Percent, Printer, Smartphone, Wrench, Truck, Wallet, Wifi, Users,
+  History, AlertCircle
 } from 'lucide-react';
 
 interface IconSelectorProps {
@@ -62,7 +67,32 @@ const IconSelector = ({ value, onChange, label = "Ícone" }: IconSelectorProps) 
     { name: 'Gift', component: Gift },
     { name: 'Flag', component: Flag },
     { name: 'Bell', component: Bell },
-    { name: 'MessageCircle', component: MessageCircle }
+    { name: 'MessageCircle', component: MessageCircle },
+    // 20+ novos ícones
+    { name: 'Activity', component: Activity },
+    { name: 'Briefcase', component: Briefcase },
+    { name: 'Calculator', component: Calculator },
+    { name: 'CreditCard', component: CreditCard },
+    { name: 'DollarSign', component: DollarSign },
+    { name: 'Fingerprint', component: Fingerprint },
+    { name: 'Folder', component: Folder },
+    { name: 'HardDrive', component: HardDrive },
+    { name: 'Headphones', component: Headphones },
+    { name: 'Image', component: Image },
+    { name: 'Laptop', component: Laptop },
+    { name: 'Layers', component: Layers },
+    { name: 'Link', component: Link },
+    { name: 'Map', component: Map },
+    { name: 'Percent', component: Percent },
+    { name: 'Printer', component: Printer },
+    { name: 'Smartphone', component: Smartphone },
+    { name: 'Wrench', component: Wrench },
+    { name: 'Truck', component: Truck },
+    { name: 'Wallet', component: Wallet },
+    { name: 'Wifi', component: Wifi },
+    { name: 'Users', component: Users },
+    { name: 'History', component: History },
+    { name: 'AlertCircle', component: AlertCircle }
   ];
 
   const selectedIcon = availableIcons.find(icon => icon.name === value);
