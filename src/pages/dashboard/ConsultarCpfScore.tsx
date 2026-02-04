@@ -11,7 +11,6 @@ const ConsultarCpfScore: React.FC = () => {
       moduleId={140}
       source="consultar-cpf-score"
       onlySection="score"
-      chargeAlwaysExceptHistory
     />
   );
 };

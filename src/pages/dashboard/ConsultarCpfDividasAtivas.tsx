@@ -11,7 +11,6 @@ const ConsultarCpfDividasAtivas: React.FC = () => {
       moduleId={147}
       source="consultar-cpf-dividas-ativas"
       onlySection="dividas_ativas"
-      chargeAlwaysExceptHistory
     />
   );
 };

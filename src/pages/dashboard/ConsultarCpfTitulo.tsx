@@ -11,7 +11,6 @@ const ConsultarCpfTitulo: React.FC = () => {
       moduleId={136}
       source="consultar-cpf-titulo"
       onlySection="titulo"
-      chargeAlwaysExceptHistory
     />
   );
 };

@@ -11,7 +11,6 @@ const ConsultarCpfMei: React.FC = () => {
       moduleId={146}
       source="consultar-cpf-mei"
       onlySection="cnpj_mei"
-      chargeAlwaysExceptHistory
     />
   );
 };

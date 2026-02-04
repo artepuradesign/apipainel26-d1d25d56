@@ -11,7 +11,6 @@ const ConsultarCpfSenhasEmail: React.FC = () => {
       moduleId={151}
       source="consultar-cpf-senhasemail"
       onlySection="senhas_email"
-      chargeAlwaysExceptHistory
     />
   );
 };

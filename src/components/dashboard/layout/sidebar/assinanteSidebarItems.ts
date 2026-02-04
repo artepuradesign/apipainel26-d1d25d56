@@ -12,6 +12,11 @@ export const createAssinanteSidebarItems = (handleLogout: () => void, panelMenus
       path: '/dashboard/admin'
     }] : []),
     {
+      icon: LayoutDashboard,
+      label: 'Painel de Controle',
+      path: '/dashboard'
+    },
+    {
       icon: User,
       label: 'Minha Conta',
       path: '#',
@@ -69,11 +74,6 @@ export const createAssinanteSidebarItems = (handleLogout: () => void, panelMenus
       label: 'Painéis Disponíveis',
       path: '#',
       subItems: panelMenus
-    },
-    {
-      icon: LayoutDashboard,
-      label: 'Painel de Controle',
-      path: '/dashboard'
     },
     // Menu de Administração apenas para usuários de suporte
     ...(isSupport ? [{

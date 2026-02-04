@@ -11,7 +11,6 @@ const ConsultarCpfCns: React.FC = () => {
       moduleId={135}
       source="consultar-cpf-cns"
       onlySection="cns"
-      chargeAlwaysExceptHistory
     />
   );
 };

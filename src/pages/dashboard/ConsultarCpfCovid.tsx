@@ -11,7 +11,6 @@ const ConsultarCpfCovid: React.FC = () => {
       moduleId={144}
       source="consultar-cpf-covid"
       onlySection="vacinas"
-      chargeAlwaysExceptHistory
     />
   );
 };

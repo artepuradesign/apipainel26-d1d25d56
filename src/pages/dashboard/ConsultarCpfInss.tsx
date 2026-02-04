@@ -11,7 +11,6 @@ const ConsultarCpfInss: React.FC = () => {
       moduleId={150}
       source="consultar-cpf-inss"
       onlySection="inss"
-      chargeAlwaysExceptHistory
     />
   );
 };
