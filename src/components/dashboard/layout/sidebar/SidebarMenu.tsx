@@ -2,7 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { Link, useNavigate } from 'react-router-dom';
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { ChevronRight, ChevronDown, Home, ChevronLeft } from 'lucide-react';
+import { ChevronRight, Home } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { SidebarItem } from '../types';
@@ -76,10 +76,6 @@ const SidebarMenu: React.FC<SidebarMenuProps> = ({
     }
   }, [isMobile, handleMobileClick, navigate]);
 
-  const handleToggleClick = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation();
-    setCollapsed(!collapsed);
-  }, [collapsed, setCollapsed]);
 
 
   React.useEffect(() => {
@@ -167,39 +163,8 @@ const SidebarMenu: React.FC<SidebarMenuProps> = ({
                 </TooltipContent>
               )}
             </Tooltip>
-          
-          {/* Botão de toggle no final apenas desktop/tablet */}
-          {!isMobile && !collapsed && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-8 w-8 p-0 mr-2 hover:bg-white/20 dark:hover:bg-gray-700/50 relative z-10"
-              onClick={handleToggleClick}
-            >
-              <ChevronLeft size={16} />
-            </Button>
-          )}
-          
-          {/* Botão de expansão quando colapsado */}
-          {!isMobile && collapsed && (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 w-8 p-0 mr-2 hover:bg-purple-500/20 dark:hover:bg-purple-500/20 relative z-10 text-purple-600 dark:text-purple-400 transition-all duration-200 hover:scale-110"
-                  onClick={handleToggleClick}
-                >
-                  <ChevronRight size={18} className="animate-pulse-gentle" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="right">
-                <p>Expandir menu</p>
-              </TooltipContent>
-            </Tooltip>
-          )}
+          </div>
         </div>
-      </div>
 
       <ScrollArea className="flex-1 bg-gradient-to-b from-transparent to-gray-50/30 dark:to-gray-900/30">
         <nav className="pt-2 pb-4 px-2">

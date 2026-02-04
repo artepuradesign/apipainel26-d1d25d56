@@ -2,6 +2,8 @@
 import React from 'react';
 import SidebarMenu from './sidebar/SidebarMenu';
 import { SidebarItem } from './types';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface SidebarProps {
   collapsed: boolean;
@@ -35,6 +37,11 @@ const Sidebar = ({
     }
   };
 
+  const handleToggleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setCollapsed(!collapsed);
+  };
+
   return (
     <aside 
       className={`
@@ -50,6 +57,42 @@ const Sidebar = ({
       `}
       onClick={handleSidebarClick}
     >
+      {/* Botão flutuante circular para expandir/recolher */}
+      {!isMobile && (
+        <TooltipProvider delayDuration={200}>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onClick={handleToggleClick}
+                className={`
+                  absolute top-20 -right-3.5 z-50
+                  w-7 h-7 rounded-full
+                  bg-white dark:bg-gray-800
+                  border-2 border-primary/30 dark:border-primary/50
+                  shadow-lg hover:shadow-xl
+                  flex items-center justify-center
+                  transition-all duration-200
+                  hover:bg-primary hover:border-primary
+                  hover:text-white
+                  text-primary dark:text-primary
+                  group
+                `}
+                aria-label={collapsed ? 'Expandir menu' : 'Recolher menu'}
+              >
+                {collapsed ? (
+                  <ChevronRight size={16} className="transition-transform group-hover:scale-110" />
+                ) : (
+                  <ChevronLeft size={16} className="transition-transform group-hover:scale-110" />
+                )}
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="right" sideOffset={8}>
+              <p>{collapsed ? 'Expandir menu' : 'Recolher menu'}</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      )}
+
       {/* Menu Items */}
       <SidebarMenu
         filteredItems={filteredItems}
