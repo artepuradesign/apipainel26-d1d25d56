@@ -819,7 +819,7 @@ const ConsultarNomeCompleto = () => {
         </Card>
       )}
 
-      {/* Últimas Consultas - Mesmo layout do consultar-cpf-simples */}
+      {/* Últimas Consultas - Layout simplificado (sem links clicáveis) */}
       <Card className="w-full">
         <CardHeader className="pb-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -850,41 +850,21 @@ const ConsultarNomeCompleto = () => {
                   });
                 };
 
-                const handleLoadConsultation = (consultation: any) => {
-                  // Exibir consulta na mesma tela sem cobrar novamente
-                  if (consultation?.result_data) {
-                    const data = consultation.result_data;
-                    setResultados(data.resultados || []);
-                    setTotalEncontrados(data.total_encontrados || 0);
-                    setResultadoLink(data.link || null);
-                    setNomeCompleto(consultation.document);
-
-                    // Scroll suave para a seção de resultados
-                    setTimeout(() => {
-                      resultRef.current?.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'start',
-                      });
-                    }, 100);
-
-                    toast.success('Consulta carregada do histórico (sem cobrança)', { duration: 2000 });
-                  } else {
-                    toast.error('Dados da consulta não disponíveis');
-                  }
-                };
-
                 if (isMobile) {
                   return (
                     <div className="space-y-2">
                       {recentConsultations.map((consultation) => (
-                        <button
+                        <div
                           key={consultation.id}
-                          type="button"
-                          onClick={() => handleLoadConsultation(consultation)}
-                          className="w-full text-left rounded-md border border-border bg-card px-3 py-2"
+                          className="w-full rounded-md border border-border bg-card px-3 py-2"
                         >
                           <div className="flex items-start justify-between gap-3">
-                            <div className="min-w-0">
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4">
+                                  {consultation.module_type || 'NOME COMPLETO'}
+                                </Badge>
+                              </div>
                               <div className="font-medium text-xs truncate">
                                 {consultation.document || 'Nome consultado'}
                               </div>
@@ -896,7 +876,6 @@ const ConsultarNomeCompleto = () => {
                               </div>
                             </div>
 
-                            {/* No mobile: bolinha colorida conforme status */}
                             <span
                               className={
                                 consultation.status === 'completed'
@@ -907,7 +886,7 @@ const ConsultarNomeCompleto = () => {
                               title={consultation.status === 'completed' ? 'Concluída' : 'Não encontrado'}
                             />
                           </div>
-                        </button>
+                        </div>
                       ))}
                     </div>
                   );
@@ -917,6 +896,7 @@ const ConsultarNomeCompleto = () => {
                   <Table>
                     <TableHeader>
                       <TableRow>
+                        <TableHead className="min-w-[100px] whitespace-nowrap">Módulo</TableHead>
                         <TableHead className="min-w-[200px] whitespace-nowrap">Nome Consultado</TableHead>
                         <TableHead className="min-w-[100px] whitespace-nowrap">Resultados</TableHead>
                         <TableHead className="min-w-[180px] whitespace-nowrap">Data e Hora</TableHead>
@@ -933,11 +913,12 @@ const ConsultarNomeCompleto = () => {
                             : Number(consultationValue) || 0;
 
                         return (
-                          <TableRow
-                            key={consultation.id}
-                            className="cursor-pointer"
-                            onClick={() => handleLoadConsultation(consultation)}
-                          >
+                          <TableRow key={consultation.id}>
+                            <TableCell className="text-xs sm:text-sm whitespace-nowrap">
+                              <Badge variant="outline" className="text-xs">
+                                {consultation.module_type || 'NOME COMPLETO'}
+                              </Badge>
+                            </TableCell>
                             <TableCell className="text-xs sm:text-sm whitespace-nowrap truncate max-w-[200px]">
                               {consultation.document || 'Nome consultado'}
                             </TableCell>
@@ -987,7 +968,7 @@ const ConsultarNomeCompleto = () => {
               <Button 
                 variant="outline" 
                 size={isMobile ? "sm" : "sm"}
-                onClick={() => navigate('/dashboard/historico-consultas-cpf')}
+                onClick={() => navigate('/dashboard/historico-consultas-nome')}
                 className="text-primary border-primary hover:bg-muted"
               >
                 <FileText className={`mr-2 ${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} />
