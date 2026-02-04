@@ -40,27 +40,21 @@ const DashboardLayout = ({
   }, []);
   const { panelMenus, isLoading: panelsLoading } = usePanelMenus();
   
-  // Sidebar expandida em desktop (>1024px), colapsada em tablets e mobile
+  // Sidebar expandida em desktop (>1024px) por padrão
+  // NÃO colapsa automaticamente em resize - só quando o usuário clica!
   const [collapsed, setCollapsed] = useState(() => {
-    // Usar valor inicial baseado no tamanho da tela
     if (typeof window !== 'undefined') {
       return window.innerWidth <= 1024;
     }
     return false;
   });
   
-  // Atualizar estado quando a tela redimensionar
+  // Definir estado inicial apenas UMA VEZ no mount
+  // Não atualizar automaticamente no resize - o usuário controla
   useEffect(() => {
-    const handleResize = () => {
-      const isDesktop = window.innerWidth > 1024;
-      setCollapsed(!isDesktop);
-    };
-    
-    // Definir estado inicial correto após mount
-    handleResize();
-    
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    const isDesktop = window.innerWidth > 1024;
+    setCollapsed(!isDesktop);
+    // SEM listener de resize para não colapsar automaticamente
   }, []);
   
   // Prevenir duplicação de notificações

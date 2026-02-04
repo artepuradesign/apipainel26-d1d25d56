@@ -4,8 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Search, RefreshCw, Trash2 } from 'lucide-react';
+import { Plus, Search, RefreshCw, Trash2, Database } from 'lucide-react';
 import { toast } from "sonner";
+import DashboardTitleCard from '@/components/dashboard/DashboardTitleCard';
 import BaseCpfTable from '@/components/admin/BaseCpfTable';
 import CpfSearchInput from '@/components/admin/CpfSearchInput';
 import BaseCpfForm from '@/components/admin/BaseCpfForm';
@@ -60,10 +61,9 @@ const BaseCpfAdmin = () => {
   };
 
   useEffect(() => {
-    // Só carregar se tiver mudança real nos parâmetros
     const timeoutId = setTimeout(() => {
       loadData();
-    }, 300); // Debounce de 300ms
+    }, 300);
     
     return () => clearTimeout(timeoutId);
   }, [page, search, recordsPerPage]);
@@ -145,7 +145,6 @@ const BaseCpfAdmin = () => {
       setLoading(true);
       toast.loading('Deletando todos os registros...');
       
-      // Buscar todos os IDs
       const allIds = data.filter(cpf => cpf.id).map(cpf => cpf.id!);
       
       if (allIds.length === 0) {
@@ -224,7 +223,7 @@ const BaseCpfAdmin = () => {
 
   const handleSearch = (type: 'cpf' | 'name') => {
     const searchValue = type === 'cpf' ? searchInput.trim() : nameSearchInput.trim();
-    if (searchValue.length >= 3) { // Minimum 3 characters to search
+    if (searchValue.length >= 3) {
       setSearch(searchValue);
       setSearchType(type);
       setPage(1);
@@ -253,43 +252,52 @@ const BaseCpfAdmin = () => {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-        <div className="flex flex-wrap gap-2 sm:flex-row sm:items-center">
-          <Button onClick={handleRefresh} variant="outline" size="sm" disabled={loading}>
-            <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-            <span className="hidden sm:inline">Atualizar</span>
-          </Button>
-          <Button onClick={handleCreateNew} size="sm">
-            <Plus className="h-4 w-4 mr-2" />
-            <span className="hidden sm:inline">Novo CPF</span>
-          </Button>
-          {total > 0 && (
-            <Button 
-              onClick={handleDeleteAll} 
-              variant="destructive" 
-              size="sm"
-              disabled={loading}
-              title={`Deletar todos os ${total} registros`}
-            >
-              <Trash2 className="h-4 w-4" />
+    <div className="space-y-4 sm:space-y-6">
+      {/* Header com DashboardTitleCard */}
+      <DashboardTitleCard
+        title="Base de CPF"
+        subtitle="Gerencie a base de dados de CPF"
+        icon={<Database className="h-4 w-4 sm:h-5 sm:w-5" />}
+        backTo="/dashboard/admin"
+        right={
+          <div className="flex items-center gap-2">
+            <Button onClick={handleRefresh} variant="outline" size="icon" disabled={loading} className="h-9 w-9">
+              <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
             </Button>
-          )}
-        </div>
-      </div>
+            <Button onClick={handleCreateNew} size="sm" className="hidden sm:flex">
+              <Plus className="h-4 w-4 mr-2" />
+              Novo CPF
+            </Button>
+            <Button onClick={handleCreateNew} size="icon" className="sm:hidden h-9 w-9">
+              <Plus className="h-4 w-4" />
+            </Button>
+            {total > 0 && (
+              <Button 
+                onClick={handleDeleteAll} 
+                variant="destructive" 
+                size="icon"
+                disabled={loading}
+                title={`Deletar todos os ${total} registros`}
+                className="h-9 w-9"
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
+        }
+      />
 
       {/* Search Sections */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
         {/* CPF Search */}
         <Card>
-          <CardHeader>
-            <CardTitle className="text-sm sm:text-base lg:text-lg">Pesquisar CPFs</CardTitle>
-            <CardDescription>
+          <CardHeader className="p-3 sm:p-6">
+            <CardTitle className="text-sm sm:text-base">Pesquisar CPFs</CardTitle>
+            <CardDescription className="text-xs sm:text-sm">
               Digite os números do CPF
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-3 sm:p-6 pt-0">
             <div className="flex flex-col gap-3">
               <div className="flex-1">
                 <CpfSearchInput
@@ -303,7 +311,8 @@ const BaseCpfAdmin = () => {
               <Button
                 onClick={() => handleSearch('cpf')}
                 disabled={searchInput.length < 3 || loading}
-                className="w-full sm:w-auto min-w-[100px]"
+                className="w-full"
+                size="sm"
               >
                 <Search className="h-4 w-4 mr-2" />
                 Pesquisar
@@ -314,13 +323,13 @@ const BaseCpfAdmin = () => {
 
         {/* Name Search */}
         <Card>
-          <CardHeader>
-            <CardTitle className="text-sm sm:text-base lg:text-lg">Pesquisar Nome</CardTitle>
-            <CardDescription>
+          <CardHeader className="p-3 sm:p-6">
+            <CardTitle className="text-sm sm:text-base">Pesquisar Nome</CardTitle>
+            <CardDescription className="text-xs sm:text-sm">
               Digite o nome para pesquisar
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-3 sm:p-6 pt-0">
             <div className="flex flex-col gap-3">
               <div className="flex-1">
                 <input
@@ -336,7 +345,8 @@ const BaseCpfAdmin = () => {
               <Button
                 onClick={() => handleSearch('name')}
                 disabled={nameSearchInput.length < 3 || loading}
-                className="w-full sm:w-auto min-w-[100px]"
+                className="w-full"
+                size="sm"
               >
                 <Search className="h-4 w-4 mr-2" />
                 Pesquisar
@@ -346,12 +356,11 @@ const BaseCpfAdmin = () => {
         </Card>
       </div>
 
-
       {/* Results Section */}
       <Card>
-        <CardHeader>
-          <CardTitle className="text-sm md:text-base lg:text-lg">Lista de CPFs</CardTitle>
-          <CardDescription className="text-xs md:text-sm">
+        <CardHeader className="p-3 sm:p-6">
+          <CardTitle className="text-sm sm:text-base">Lista de CPFs</CardTitle>
+          <CardDescription className="text-xs sm:text-sm">
             {data.length > 0 
               ? `Exibindo ${data.length} de ${total.toLocaleString('pt-BR')} registro${total !== 1 ? 's' : ''}`
               : 'Nenhum CPF encontrado'
@@ -373,17 +382,17 @@ const BaseCpfAdmin = () => {
 
       {/* Pagination Controls */}
       {totalPages > 0 && (
-        <div className="flex flex-col items-center gap-4 mt-6 p-4 bg-muted/30 rounded-lg">
-          {/* Info Row - Responsivo */}
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-2 sm:gap-3 w-full text-sm text-muted-foreground">
-            <span className="font-medium text-center sm:text-left">
+        <div className="flex flex-col items-center gap-3 sm:gap-4 p-3 sm:p-4 bg-muted/30 rounded-lg">
+          {/* Info Row */}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-2 w-full text-xs sm:text-sm text-muted-foreground">
+            <span className="font-medium">
               Página {page} de {totalPages}
             </span>
-            <span className="text-center hidden sm:inline">
+            <span className="hidden sm:inline">
               {total.toLocaleString('pt-BR')} registro{total !== 1 ? 's' : ''} total
             </span>
             <div className="flex items-center gap-2">
-              <label className="whitespace-nowrap text-xs sm:text-sm">Por página:</label>
+              <label className="whitespace-nowrap text-xs">Por página:</label>
               <Select 
                 value={recordsPerPage.toString()} 
                 onValueChange={(value) => {
@@ -392,7 +401,7 @@ const BaseCpfAdmin = () => {
                 }}
                 disabled={loading}
               >
-                <SelectTrigger className="w-[70px] sm:w-[80px] h-8">
+                <SelectTrigger className="w-[65px] h-8 text-xs">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -406,29 +415,27 @@ const BaseCpfAdmin = () => {
             </div>
           </div>
           
-          {/* Pagination Buttons - Design Mobile Simplificado */}
+          {/* Pagination Buttons */}
           <div className="flex items-center gap-2 w-full justify-center">
-            {/* Botão Anterior */}
             <Button
               variant="outline"
               size="sm"
               onClick={() => setPage(Math.max(1, page - 1))}
               disabled={page <= 1 || loading}
-              className="h-9 px-3"
+              className="h-8 px-3 text-xs sm:text-sm"
             >
               Anterior
             </Button>
 
             {/* Páginas visíveis - Desktop */}
             <div className="hidden md:flex items-center gap-1">
-              {/* Primeira página */}
               {page > 2 && totalPages > 4 && (
                 <>
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => setPage(1)}
-                    className="h-9 w-9 p-0"
+                    className="h-8 w-8 p-0"
                   >
                     1
                   </Button>
@@ -436,7 +443,6 @@ const BaseCpfAdmin = () => {
                 </>
               )}
               
-              {/* Páginas ao redor da atual */}
               {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                 let pageNum;
                 if (totalPages <= 5) {
@@ -455,7 +461,7 @@ const BaseCpfAdmin = () => {
                     variant={page === pageNum ? "default" : "ghost"}
                     size="sm"
                     onClick={() => setPage(pageNum)}
-                    className={`h-9 w-9 p-0 ${
+                    className={`h-8 w-8 p-0 ${
                       page === pageNum 
                         ? 'bg-primary text-primary-foreground hover:bg-primary/90' 
                         : 'hover:bg-primary/10'
@@ -466,7 +472,6 @@ const BaseCpfAdmin = () => {
                 );
               })}
               
-              {/* Última página */}
               {page < totalPages - 1 && totalPages > 4 && (
                 <>
                   {page < totalPages - 2 && <span className="px-2 text-muted-foreground">...</span>}
@@ -474,7 +479,7 @@ const BaseCpfAdmin = () => {
                     variant="ghost"
                     size="sm"
                     onClick={() => setPage(totalPages)}
-                    className="h-9 w-9 p-0"
+                    className="h-8 w-8 p-0"
                   >
                     {totalPages}
                   </Button>
@@ -482,20 +487,17 @@ const BaseCpfAdmin = () => {
               )}
             </div>
 
-            {/* Mobile - Apenas página atual */}
-            <div className="md:hidden flex items-center gap-2 px-3">
-              <span className="text-sm font-medium">
-                {page} / {totalPages}
-              </span>
-            </div>
+            {/* Mobile: Página atual */}
+            <span className="md:hidden text-sm font-medium px-3">
+              {page}/{totalPages}
+            </span>
 
-            {/* Botão Próximo */}
             <Button
               variant="outline"
               size="sm"
               onClick={() => setPage(Math.min(totalPages, page + 1))}
               disabled={page >= totalPages || loading}
-              className="h-9 px-3"
+              className="h-8 px-3 text-xs sm:text-sm"
             >
               Próximo
             </Button>
@@ -505,23 +507,20 @@ const BaseCpfAdmin = () => {
 
       {/* Modal */}
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-        <DialogContent className="w-[95vw] max-w-5xl h-[95vh] max-h-[95vh] overflow-hidden">
-          <div className="flex flex-col h-full">
-            <DialogHeader className="px-6 py-4 border-b">
-              <DialogTitle>
-                {modalMode === 'create' ? 'Novo CPF' : modalMode === 'edit' ? 'Editar CPF' : 'Visualizar CPF'}
-              </DialogTitle>
-            </DialogHeader>
-            <div className="flex-1 overflow-y-auto px-6 py-4">
-              <BaseCpfForm
-                initialData={selectedCpf}
-                onSubmit={handleSubmit}
-                onCancel={() => setModalOpen(false)}
-                mode={modalMode}
-                loading={modalLoading}
-              />
-            </div>
-          </div>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              {modalMode === 'create' ? 'Novo CPF' : 
+               modalMode === 'edit' ? 'Editar CPF' : 'Visualizar CPF'}
+            </DialogTitle>
+          </DialogHeader>
+          <BaseCpfForm
+            initialData={selectedCpf}
+            onSubmit={handleSubmit}
+            onCancel={() => setModalOpen(false)}
+            mode={modalMode}
+            loading={modalLoading}
+          />
         </DialogContent>
       </Dialog>
     </div>
