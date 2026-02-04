@@ -2,11 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Gift, RefreshCw } from 'lucide-react';
+import { Gift, RefreshCw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useApiDashboardAdmin } from '@/hooks/useApiDashboardAdmin';
-import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
 import { formatDate } from '@/utils/historicoUtils';
+import DashboardTitleCard from '@/components/dashboard/DashboardTitleCard';
 
 const AdminIndicacoes = () => {
   const navigate = useNavigate();
@@ -23,7 +23,7 @@ const AdminIndicacoes = () => {
     t.description?.toLowerCase().includes('referral') ||
     t.type === 'commission' ||
     t.type === 'indicacao') &&
-    t.source === 'central_cash' // Filtrar apenas registros do central_cash para evitar duplicatas
+    t.source === 'central_cash'
   );
 
   const formatCurrency = (value: number) => {
@@ -33,161 +33,141 @@ const AdminIndicacoes = () => {
     });
   };
 
+  const extractIndicado = (transaction: any) => {
+    const descricao = transaction.description || '';
+    
+    if (descricao.includes('usuário ')) {
+      const match = descricao.match(/usuário (.+?)$/);
+      if (match) return match[1];
+    }
+    
+    if (descricao.includes('indicação por ')) {
+      return transaction.user_name || 'N/A';
+    }
+    
+    return 'N/A';
+  };
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
+      <DashboardTitleCard
+        title="Total de Indicações"
+        subtitle="Histórico completo de comissões pagas"
+        icon={<Gift className="h-4 w-4 sm:h-5 sm:w-5" />}
+        backTo="/dashboard/admin"
+        right={
           <Button
-            variant="ghost"
-            onClick={() => navigate('/dashboard/admin')}
-            className="p-2"
+            onClick={() => loadTransactions(100)}
+            disabled={isLoading}
+            variant="outline"
+            size="sm"
+            className="h-8 sm:h-9"
           >
-            <ArrowLeft className="h-4 w-4" />
+            <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+            <span className="hidden sm:inline ml-2">Atualizar</span>
           </Button>
-          <div>
-            <h1 className="text-2xl font-bold">Total de Indicações</h1>
-            <p className="text-muted-foreground">Histórico completo de comissões pagas</p>
-          </div>
-        </div>
-        <Button
-          onClick={() => loadTransactions(100)}
-          disabled={isLoading}
-          variant="outline"
-        >
-          <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
-          Atualizar
-        </Button>
-      </div>
+        }
+      />
 
       {/* Resumo */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Pago</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 sm:p-6 sm:pb-2">
+            <CardTitle className="text-xs sm:text-sm font-medium">Total Pago</CardTitle>
             <Gift className="h-4 w-4 text-orange-600" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-orange-600">
+          <CardContent className="p-3 pt-0 sm:p-6 sm:pt-0">
+            <div className="text-xl sm:text-2xl font-bold text-orange-600">
               {formatCurrency(stats?.total_commissions || 0)}
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total de Indicações</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 sm:p-6 sm:pb-2">
+            <CardTitle className="text-xs sm:text-sm font-medium">Total de Indicações</CardTitle>
             <Gift className="h-4 w-4 text-blue-600" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
+          <CardContent className="p-3 pt-0 sm:p-6 sm:pt-0">
+            <div className="text-xl sm:text-2xl font-bold">
               {stats?.total_referrals || 0}
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Comissão Média</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 sm:p-6 sm:pb-2">
+            <CardTitle className="text-xs sm:text-sm font-medium">Comissão Média</CardTitle>
             <Gift className="h-4 w-4 text-green-600" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
+          <CardContent className="p-3 pt-0 sm:p-6 sm:pt-0">
+            <div className="text-xl sm:text-2xl font-bold">
               {formatCurrency(stats?.total_referrals ? (stats?.total_commissions || 0) / stats?.total_referrals : 0)}
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Tabela de Indicações */}
+      {/* Lista de Indicações - Mobile First */}
       <Card>
-        <CardHeader>
+        <CardHeader className="p-3 sm:p-6">
           <div className="flex items-center justify-between">
-            <CardTitle>Histórico de Comissões</CardTitle>
-            <Badge variant="secondary">
+            <CardTitle className="text-base sm:text-lg">Histórico de Comissões</CardTitle>
+            <Badge variant="secondary" className="text-xs">
               {indicacaoTransactions.length} comissões
             </Badge>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-3 sm:p-6 pt-0 sm:pt-0">
           {isLoading ? (
             <div className="text-center py-8">
               <RefreshCw className="h-8 w-8 animate-spin text-blue-500 mx-auto mb-4" />
               <p className="text-gray-600 dark:text-gray-400">Carregando comissões...</p>
             </div>
           ) : indicacaoTransactions.length > 0 ? (
-            <div className="space-y-4">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>ID</TableHead>
-                    <TableHead>Data</TableHead>
-                    <TableHead>Indicador</TableHead>
-                    <TableHead>Indicado</TableHead>
-                    <TableHead>Valor da Comissão</TableHead>
-                    <TableHead>Status</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                {indicacaoTransactions.slice(0, displayLimit).map((transaction, index) => {
-                    // Extrair indicador e indicado da descrição
-                    const descricao = transaction.description || '';
-                    let indicador = transaction.user_name || 'N/A';
-                    let indicado = 'N/A';
-                    
-                    // Padrão 1: "Comissão por indicação - usuário Leonardo Castro"
-                    if (descricao.includes('usuário ')) {
-                      const match = descricao.match(/usuário (.+?)$/);
-                      if (match) {
-                        indicado = match[1];
-                        // O indicador está no user_name
-                      }
-                    }
-                    // Padrão 2: "Bônus de indicação por APIPainel"
-                    else if (descricao.includes('indicação por ')) {
-                      const match = descricao.match(/indicação por (.+?)$/);
-                      if (match) {
-                        indicador = match[1];
-                        // O indicado está no user_name
-                        indicado = transaction.user_name || 'N/A';
-                      }
-                    }
-                    
-                    return (
-                      <TableRow key={transaction.id || index}>
-                        <TableCell className="font-mono text-xs">
-                          #{transaction.id}
-                        </TableCell>
-                        <TableCell className="font-medium">
-                          {formatDate(transaction.created_at)}
-                        </TableCell>
-                        <TableCell>
-                          {transaction.user_name || 'N/A'}
-                        </TableCell>
-                        <TableCell>
-                          {indicado}
-                        </TableCell>
-                        <TableCell>
-                          <span className="font-bold text-orange-600">
-                            {formatCurrency(transaction.amount)}
-                          </span>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="default">
-                            Pago
-                          </Badge>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
+            <div className="space-y-3">
+              {indicacaoTransactions.slice(0, displayLimit).map((transaction, index) => (
+                <div 
+                  key={transaction.id || index}
+                  className="border rounded-lg p-3 sm:p-4 space-y-2 bg-card border-l-4 border-l-orange-500"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-mono text-muted-foreground">
+                        #{transaction.id}
+                      </span>
+                      <span className="text-xs sm:text-sm text-muted-foreground">
+                        {formatDate(transaction.created_at)}
+                      </span>
+                    </div>
+                    <Badge variant="default" className="text-xs">Pago</Badge>
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm sm:text-base truncate">
+                        Indicador: {transaction.user_name || 'N/A'}
+                      </p>
+                      <p className="text-xs sm:text-sm text-muted-foreground truncate">
+                        Indicado: {extractIndicado(transaction)}
+                      </p>
+                    </div>
+                    <div className="text-right ml-3">
+                      <p className="font-bold text-sm sm:text-base text-orange-600">
+                        {formatCurrency(transaction.amount)}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
 
               {indicacaoTransactions.length > displayLimit && (
-                <div className="text-center">
+                <div className="text-center pt-2">
                   <Button 
                     variant="outline" 
                     onClick={() => setDisplayLimit(prev => prev + 50)}
+                    className="w-full sm:w-auto"
                   >
                     Carregar mais ({indicacaoTransactions.length - displayLimit} restantes)
                   </Button>
