@@ -10,7 +10,8 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { CreditCard, Zap, Ticket } from 'lucide-react';
+import { CreditCard, Zap, Ticket, Wallet } from 'lucide-react';
+import DashboardTitleCard from '@/components/dashboard/DashboardTitleCard';
 import QRCode from 'react-qr-code';
 import { formatBrazilianCurrency } from '@/utils/historicoUtils';
 import { usePaymentPolling } from '@/hooks/usePaymentPolling';
@@ -374,17 +375,16 @@ const AdicionarSaldo = () => {
   };
 
   return (
-    <div className="space-y-4 sm:space-y-6 max-w-6xl mx-auto px-2 sm:px-0">
-      {/* Header */}
-      <div className="space-y-1 sm:space-y-2">
-        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight">Adicionar Saldo</h1>
-        <p className="text-sm sm:text-base text-muted-foreground">
-          Escolha o método de pagamento e o valor para recarregar
-        </p>
-      </div>
+    <div className="space-y-4 sm:space-y-6 max-w-6xl mx-auto px-1 sm:px-0">
+      {/* Header usando DashboardTitleCard */}
+      <DashboardTitleCard
+        title="Adicionar Saldo"
+        subtitle="Escolha o método de pagamento e o valor para recarregar"
+        icon={<Wallet className="h-4 w-4 sm:h-5 sm:w-5" />}
+      />
 
       {/* Layout Principal: Método de Pagamento + Valor lado a lado */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         {/* 1. Método de Pagamento */}
         <Card className="h-fit">
           <CardHeader className="pb-3 sm:pb-6">
