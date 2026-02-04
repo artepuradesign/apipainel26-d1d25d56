@@ -65,7 +65,7 @@ const Sidebar = ({
               <button
                 onClick={handleToggleClick}
                 className={`
-                  absolute top-20 -right-3.5 z-50
+                  absolute top-5 -right-3.5 z-50
                   w-7 h-7 rounded-full
                   bg-white dark:bg-gray-800
                   border-2 border-primary/30 dark:border-primary/50
