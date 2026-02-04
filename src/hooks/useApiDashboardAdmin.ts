@@ -64,6 +64,7 @@ export interface DashboardTransaction {
   payment_method: string;
   created_at: string;
   source?: string;
+  module_name?: string;
 }
 
 export const useApiDashboardAdmin = () => {
