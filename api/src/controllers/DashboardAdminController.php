@@ -326,11 +326,11 @@ class DashboardAdminController {
     
     public function getTransactions() {
         try {
-            error_log("DASHBOARD_ADMIN: Buscando transações do caixa central e bônus de indicação");
+            error_log("DASHBOARD_ADMIN: Buscando transações do caixa central, bônus de indicação e consultas");
             
             $limit = $_GET['limit'] ?? 50;
             
-            // Query principal incluindo transações do caixa central E transações de indicação
+            // Query principal incluindo transações do caixa central, indicações E consultas
             $query = "
                 (
                     SELECT 
@@ -343,7 +343,8 @@ class DashboardAdminController {
                         u.full_name as user_name,
                         cc.payment_method,
                         cc.created_at,
-                        'central_cash' as source_table
+                        'central_cash' as source_table,
+                        NULL as module_name
                     FROM central_cash cc
                     LEFT JOIN users u ON cc.user_id = u.id
                 )
@@ -362,10 +363,36 @@ class DashboardAdminController {
                         u.full_name as user_name,
                         COALESCE(wt.payment_method, 'Sistema') as payment_method,
                         wt.created_at,
-                        'wallet_transactions' as source_table
+                        'wallet_transactions' as source_table,
+                        NULL as module_name
                     FROM wallet_transactions wt
                     LEFT JOIN users u ON wt.user_id = u.id
                     WHERE wt.type = 'indicacao'
+                )
+                UNION ALL
+                (
+                    SELECT 
+                        CONCAT('cons_', c.id) as id,
+                        'consulta' as type,
+                        CONCAT('Consulta: ', c.document) as description,
+                        c.cost as amount,
+                        0 as balance_before,
+                        0 as balance_after,
+                        u.full_name as user_name,
+                        'saldo' as payment_method,
+                        c.created_at,
+                        'consultations' as source_table,
+                        COALESCE(
+                            JSON_UNQUOTE(JSON_EXTRACT(c.metadata, '$.module_title')),
+                            CASE 
+                                WHEN c.module_type = 'nome' THEN 'NOME COMPLETO'
+                                WHEN c.module_type = 'cpf' THEN 'CPF'
+                                ELSE UPPER(COALESCE(c.module_type, 'CONSULTA'))
+                            END
+                        ) as module_name
+                    FROM consultations c
+                    LEFT JOIN users u ON c.user_id = u.id
+                    WHERE c.status = 'completed' AND c.cost > 0
                 )
                 ORDER BY created_at DESC
                 LIMIT ?";
@@ -385,11 +412,12 @@ class DashboardAdminController {
                     'user_name' => $row['user_name'],
                     'payment_method' => $row['payment_method'],
                     'created_at' => $row['created_at'],
-                    'source' => $row['source_table']
+                    'source' => $row['source_table'],
+                    'module_name' => $row['module_name']
                 ];
             }
             
-            error_log("DASHBOARD_ADMIN: " . count($transactions) . " transações carregadas (incluindo bônus de indicação)");
+            error_log("DASHBOARD_ADMIN: " . count($transactions) . " transações carregadas (incluindo consultas e bônus)");
             Response::success(['transactions' => $transactions], 'Transações carregadas com sucesso');
             
         } catch (Exception $e) {

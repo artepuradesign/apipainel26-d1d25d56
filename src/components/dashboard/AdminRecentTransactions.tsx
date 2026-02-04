@@ -90,10 +90,18 @@ const AdminRecentTransactions: React.FC<AdminRecentTransactionsProps> = ({ recen
                     <p className="text-xs sm:text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
                       {transaction.description}
                     </p>
-                    <div className="flex items-center gap-1 sm:gap-2 mt-0.5 sm:mt-1">
+                    <div className="flex items-center gap-1 sm:gap-2 mt-0.5 sm:mt-1 flex-wrap">
                       <span className="text-xs text-gray-600 dark:text-gray-400">
                         {new Date(transaction.created_at).toLocaleDateString('pt-BR')} {new Date(transaction.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                       </span>
+                      {transaction.module_name && (
+                        <>
+                          <span className="text-gray-400 hidden sm:inline">•</span>
+                          <Badge variant="outline" className="text-[10px] sm:text-xs px-1 sm:px-1.5 py-0 h-4 sm:h-5">
+                            {transaction.module_name}
+                          </Badge>
+                        </>
+                      )}
                       {transaction.user_name && (
                         <>
                           <span className="text-gray-400 hidden sm:inline">•</span>
@@ -103,6 +111,11 @@ const AdminRecentTransactions: React.FC<AdminRecentTransactionsProps> = ({ recen
                     </div>
                     {transaction.user_name && (
                       <span className="text-xs font-medium text-primary/80 truncate block sm:hidden">{transaction.user_name}</span>
+                    )}
+                    {transaction.module_name && (
+                      <Badge variant="outline" className="text-[10px] px-1 py-0 h-4 mt-0.5 sm:hidden">
+                        {transaction.module_name}
+                      </Badge>
                     )}
                   </div>
                 </div>
