@@ -1,8 +1,7 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { DollarSign, CreditCard, BarChart3, Gift, TrendingDown, TrendingUp, Users, Settings } from 'lucide-react';
+import { DollarSign } from 'lucide-react';
 import { type DashboardTransaction } from '@/hooks/useApiDashboardAdmin';
 
 interface AdminRecentTransactionsProps {
@@ -55,76 +54,74 @@ const AdminRecentTransactions: React.FC<AdminRecentTransactionsProps> = ({ recen
 
   const uniqueTransactions = deduplicateTransactions(recentTransactions);
 
+  const getTypeColor = (type: string) => {
+    switch (type) {
+      case 'recarga': return 'border-l-blue-500';
+      case 'entrada': return 'border-l-green-500';
+      case 'consulta': return 'border-l-purple-500';
+      case 'saque': return 'border-l-red-500';
+      case 'comissao': return 'border-l-yellow-500';
+      case 'indicacao': return 'border-l-orange-500';
+      case 'plano': return 'border-l-emerald-500';
+      default: return 'border-l-gray-500';
+    }
+  };
+
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-base md:text-xl">
-          <DollarSign className="h-4 w-4 md:h-5 md:w-5" />
-          <span className="text-base md:text-xl font-semibold">Transações do Caixa Central</span>
+      <CardHeader className="pb-2 sm:pb-4">
+        <CardTitle className="flex items-center gap-2 text-sm sm:text-base md:text-lg">
+          <DollarSign className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+          Transações do Caixa Central
         </CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className="space-y-2 sm:space-y-3 max-h-80 sm:max-h-96 overflow-y-auto">
+      <CardContent className="px-2 sm:px-6">
+        <div className="space-y-1.5 sm:space-y-2 max-h-72 sm:max-h-96 overflow-y-auto">
           {uniqueTransactions.length > 0 ? (
             uniqueTransactions.map((transaction) => (
-              <div key={transaction.id} className="flex items-center justify-between p-2 sm:p-3 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
-                <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
-                  <div className={`p-1.5 sm:p-2 rounded-full ${
-                    transaction.type === 'recarga' ? 'bg-blue-100 dark:bg-blue-900' :
-                    transaction.type === 'entrada' ? 'bg-green-100 dark:bg-green-900' :
-                    transaction.type === 'consulta' ? 'bg-purple-100 dark:bg-purple-900' :
-                    transaction.type === 'saque' ? 'bg-red-100 dark:bg-red-900' :
-                    transaction.type === 'comissao' ? 'bg-yellow-100 dark:bg-yellow-900' :
-                    transaction.type === 'indicacao' ? 'bg-orange-100 dark:bg-orange-900' :
-                    'bg-gray-100 dark:bg-gray-900'
-                  }`}>
-                    {transaction.type === 'recarga' ? <CreditCard className="h-3 w-3 sm:h-4 sm:w-4 text-blue-600" /> :
-                     transaction.type === 'entrada' ? <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 text-green-600" /> :
-                     transaction.type === 'consulta' ? <Users className="h-3 w-3 sm:h-4 sm:w-4 text-purple-600" /> :
-                     transaction.type === 'saque' ? <TrendingDown className="h-3 w-3 sm:h-4 sm:w-4 text-red-600" /> :
-                     transaction.type === 'comissao' ? <Gift className="h-3 w-3 sm:h-4 sm:w-4 text-yellow-600" /> :
-                     transaction.type === 'indicacao' ? <Gift className="h-3 w-3 sm:h-4 sm:w-4 text-orange-600" /> :
-                     <Settings className="h-3 w-3 sm:h-4 sm:w-4 text-gray-600" />}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs sm:text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
-                      {transaction.description}
-                    </p>
-                    <div className="flex items-center gap-1 sm:gap-2 mt-0.5 sm:mt-1 flex-wrap">
-                      <span className="text-xs text-gray-600 dark:text-gray-400">
-                        {new Date(transaction.created_at).toLocaleDateString('pt-BR')} {new Date(transaction.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
-                      </span>
-                      {transaction.module_name && (
-                        <>
-                          <span className="text-gray-400 hidden sm:inline">•</span>
-                          <Badge variant="outline" className="text-[10px] sm:text-xs px-1 sm:px-1.5 py-0 h-4 sm:h-5">
-                            {transaction.module_name}
-                          </Badge>
-                        </>
-                      )}
-                      {transaction.user_name && (
-                        <>
-                          <span className="text-gray-400 hidden sm:inline">•</span>
-                          <span className="text-xs font-medium text-primary/80 truncate hidden sm:inline">{transaction.user_name}</span>
-                        </>
-                      )}
-                    </div>
-                    {transaction.user_name && (
-                      <span className="text-xs font-medium text-primary/80 truncate block sm:hidden">{transaction.user_name}</span>
-                    )}
+              <div 
+                key={transaction.id} 
+                className={`flex items-start sm:items-center justify-between p-2 sm:p-3 bg-muted/50 rounded-lg border-l-4 ${getTypeColor(transaction.type)}`}
+              >
+                <div className="flex-1 min-w-0 space-y-0.5 sm:space-y-1">
+                  {/* Descrição */}
+                  <p className="text-xs sm:text-sm font-medium text-foreground truncate pr-2">
+                    {transaction.description}
+                  </p>
+                  
+                  {/* Info secundária */}
+                  <div className="flex flex-wrap items-center gap-1 sm:gap-2">
+                    {/* Data/hora */}
+                    <span className="text-[10px] sm:text-xs text-muted-foreground">
+                      {new Date(transaction.created_at).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })} {new Date(transaction.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                    
+                    {/* Módulo */}
                     {transaction.module_name && (
-                      <Badge variant="outline" className="text-[10px] px-1 py-0 h-4 mt-0.5 sm:hidden">
+                      <Badge variant="outline" className="text-[9px] sm:text-[10px] px-1 py-0 h-3.5 sm:h-4 font-normal">
                         {transaction.module_name}
                       </Badge>
                     )}
+                    
+                    {/* Usuário */}
+                    {transaction.user_name && (
+                      <span className="text-[10px] sm:text-xs text-primary/70 truncate max-w-[80px] sm:max-w-[120px]">
+                        {transaction.user_name}
+                      </span>
+                    )}
                   </div>
                 </div>
-                <div className="ml-2 sm:ml-3 flex-shrink-0">
-                  <Badge className={`text-xs font-semibold ${
-                    ['recarga', 'entrada', 'plano', 'indicacao', 'comissao'].includes(transaction.type) 
-                      ? "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"
-                      : "bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300"
-                  }`}>
+                
+                {/* Valor */}
+                <div className="ml-2 flex-shrink-0">
+                  <Badge 
+                    variant="secondary"
+                    className={`text-[10px] sm:text-xs font-semibold px-1.5 sm:px-2 ${
+                      ['recarga', 'entrada', 'plano', 'indicacao', 'comissao'].includes(transaction.type) 
+                        ? "bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300"
+                        : "bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300"
+                    }`}
+                  >
                     {['recarga', 'entrada', 'plano', 'indicacao', 'comissao'].includes(transaction.type) ? '+' : '-'}
                     {formatCurrency(transaction.amount)}
                   </Badge>
@@ -132,9 +129,9 @@ const AdminRecentTransactions: React.FC<AdminRecentTransactionsProps> = ({ recen
               </div>
             ))
           ) : (
-            <div className="text-center py-6 sm:py-8 text-gray-500 dark:text-gray-400">
-              <DollarSign className="h-8 w-8 sm:h-12 sm:w-12 mx-auto mb-3 sm:mb-4 opacity-50" />
-              <p className="text-sm sm:text-base">Nenhuma transação no caixa ainda</p>
+            <div className="text-center py-6 sm:py-8 text-muted-foreground">
+              <DollarSign className="h-8 w-8 sm:h-10 sm:w-10 mx-auto mb-2 sm:mb-3 opacity-50" />
+              <p className="text-xs sm:text-sm">Nenhuma transação no caixa ainda</p>
             </div>
           )}
         </div>
