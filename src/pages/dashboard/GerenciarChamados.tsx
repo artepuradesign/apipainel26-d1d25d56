@@ -18,11 +18,12 @@ import {
   RefreshCw,
   Eye,
   Reply,
-  Star
+  Star,
+  Headphones
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
-import PageHeaderCard from '@/components/dashboard/PageHeaderCard';
+import DashboardTitleCard from '@/components/dashboard/DashboardTitleCard';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -70,8 +71,6 @@ const GerenciarChamados = () => {
     try {
       setLoading(true);
       
-      // Simulação de dados para desenvolvimento
-      // Em produção, fazer requisição para API
       const mockTickets: SupportTicket[] = [
         {
           id: 1,
@@ -156,9 +155,6 @@ const GerenciarChamados = () => {
 
   const handleStatusChange = async (ticketId: number, newStatus: string) => {
     try {
-      // Aqui faria a requisição para API
-      // await updateTicketStatus(ticketId, newStatus);
-      
       setTickets(prev => 
         prev.map(ticket => 
           ticket.id === ticketId 
@@ -181,9 +177,6 @@ const GerenciarChamados = () => {
 
     try {
       setIsResponding(true);
-
-      // Aqui faria a requisição para API
-      // await respondToTicket(selectedTicket.id, resolution);
 
       setTickets(prev =>
         prev.map(ticket =>
@@ -231,21 +224,26 @@ const GerenciarChamados = () => {
 
   const getCategoryIcon = (category: string) => {
     switch (category) {
-      case 'tecnico': return <AlertTriangle className="h-4 w-4" />;
-      case 'financeiro': return <MessageSquare className="h-4 w-4" />;
-      case 'consultas': return <Search className="h-4 w-4" />;
-      default: return <MessageSquare className="h-4 w-4" />;
+      case 'tecnico': return <AlertTriangle className="h-3 w-3 sm:h-4 sm:w-4" />;
+      case 'financeiro': return <MessageSquare className="h-3 w-3 sm:h-4 sm:w-4" />;
+      case 'consultas': return <Search className="h-3 w-3 sm:h-4 sm:w-4" />;
+      default: return <MessageSquare className="h-3 w-3 sm:h-4 sm:w-4" />;
     }
   };
 
   if (loading) {
     return (
-      <div className="space-y-6">
-        <PageHeaderCard title="Gerenciar Chamados" subtitle="Carregando..." />
+      <div className="space-y-4 sm:space-y-6">
+        <DashboardTitleCard
+          title="Gerenciar Chamados"
+          subtitle="Visualize e responda aos chamados dos usuários"
+          icon={<Headphones className="h-4 w-4 sm:h-5 sm:w-5" />}
+          backTo="/dashboard/admin"
+        />
         <Card>
           <CardContent className="flex items-center justify-center py-8">
             <RefreshCw className="h-6 w-6 animate-spin mr-2" />
-            Carregando chamados...
+            <span className="text-sm">Carregando chamados...</span>
           </CardContent>
         </Card>
       </div>
@@ -253,67 +251,69 @@ const GerenciarChamados = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <PageHeaderCard 
-        title="Gerenciar Chamados de Suporte" 
+    <div className="space-y-4 sm:space-y-6">
+      <DashboardTitleCard
+        title="Gerenciar Chamados"
         subtitle="Visualize e responda aos chamados dos usuários"
+        icon={<Headphones className="h-4 w-4 sm:h-5 sm:w-5" />}
+        backTo="/dashboard/admin"
       />
 
-      {/* Filtros e Estatísticas */}
-      <div className="grid md:grid-cols-4 gap-4">
+      {/* Estatísticas */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <Card>
-          <CardContent className="pt-6">
-            <div className="text-2xl font-bold text-blue-600">{tickets.filter(t => t.status === 'aberto').length}</div>
-            <p className="text-sm text-muted-foreground">Abertos</p>
+          <CardContent className="p-3 sm:p-6">
+            <div className="text-xl sm:text-2xl font-bold text-blue-600">{tickets.filter(t => t.status === 'aberto').length}</div>
+            <p className="text-xs sm:text-sm text-muted-foreground">Abertos</p>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="pt-6">
-            <div className="text-2xl font-bold text-yellow-600">{tickets.filter(t => t.status === 'em_andamento').length}</div>
-            <p className="text-sm text-muted-foreground">Em Andamento</p>
+          <CardContent className="p-3 sm:p-6">
+            <div className="text-xl sm:text-2xl font-bold text-yellow-600">{tickets.filter(t => t.status === 'em_andamento').length}</div>
+            <p className="text-xs sm:text-sm text-muted-foreground">Em Andamento</p>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="pt-6">
-            <div className="text-2xl font-bold text-green-600">{tickets.filter(t => t.status === 'resolvido').length}</div>
-            <p className="text-sm text-muted-foreground">Resolvidos</p>
+          <CardContent className="p-3 sm:p-6">
+            <div className="text-xl sm:text-2xl font-bold text-green-600">{tickets.filter(t => t.status === 'resolvido').length}</div>
+            <p className="text-xs sm:text-sm text-muted-foreground">Resolvidos</p>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="pt-6">
-            <div className="text-2xl font-bold text-red-600">{tickets.filter(t => t.priority === 'urgente').length}</div>
-            <p className="text-sm text-muted-foreground">Urgentes</p>
+          <CardContent className="p-3 sm:p-6">
+            <div className="text-xl sm:text-2xl font-bold text-red-600">{tickets.filter(t => t.priority === 'urgente').length}</div>
+            <p className="text-xs sm:text-sm text-muted-foreground">Urgentes</p>
           </CardContent>
         </Card>
       </div>
 
       {/* Filtros */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Filter className="h-5 w-5" />
+        <CardHeader className="p-3 sm:p-6">
+          <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+            <Filter className="h-4 w-4 sm:h-5 sm:w-5" />
             Filtros
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="grid md:grid-cols-4 gap-4">
+        <CardContent className="p-3 sm:p-6 pt-0">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             <div>
-              <label className="text-sm font-medium mb-2 block">Buscar</label>
+              <label className="text-xs sm:text-sm font-medium mb-2 block">Buscar</label>
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Buscar por assunto, usuário..."
+                  placeholder="Buscar por assunto..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
+                  className="pl-10 text-sm"
                 />
               </div>
             </div>
 
             <div>
-              <label className="text-sm font-medium mb-2 block">Status</label>
+              <label className="text-xs sm:text-sm font-medium mb-2 block">Status</label>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger>
+                <SelectTrigger className="text-sm">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -327,9 +327,9 @@ const GerenciarChamados = () => {
             </div>
 
             <div>
-              <label className="text-sm font-medium mb-2 block">Prioridade</label>
+              <label className="text-xs sm:text-sm font-medium mb-2 block">Prioridade</label>
               <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-                <SelectTrigger>
+                <SelectTrigger className="text-sm">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -343,7 +343,7 @@ const GerenciarChamados = () => {
             </div>
 
             <div className="flex items-end">
-              <Button onClick={loadTickets} variant="outline" className="w-full">
+              <Button onClick={loadTickets} variant="outline" className="w-full" size="sm">
                 <RefreshCw className="h-4 w-4 mr-2" />
                 Atualizar
               </Button>
@@ -354,49 +354,45 @@ const GerenciarChamados = () => {
 
       {/* Lista de Chamados */}
       <Card>
-        <CardHeader>
-          <CardTitle>Chamados ({filteredTickets.length})</CardTitle>
+        <CardHeader className="p-3 sm:p-6">
+          <CardTitle className="text-base sm:text-lg">Chamados ({filteredTickets.length})</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-3 sm:p-6 pt-0">
           {filteredTickets.length === 0 ? (
             <div className="text-center py-8">
-              <MessageSquare className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <p className="text-muted-foreground">Nenhum chamado encontrado</p>
+              <MessageSquare className="h-10 w-10 sm:h-12 sm:w-12 text-muted-foreground mx-auto mb-4" />
+              <p className="text-muted-foreground text-sm">Nenhum chamado encontrado</p>
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
               {filteredTickets.map((ticket) => (
                 <div
                   key={ticket.id}
-                  className="border rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-800"
+                  className="border rounded-lg p-3 sm:p-4 hover:bg-gray-50 dark:hover:bg-gray-800"
                 >
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <span className="font-mono text-sm text-blue-600">
+                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-wrap items-center gap-2 mb-2">
+                        <span className="font-mono text-xs text-blue-600">
                           {ticket.ticket_number}
                         </span>
-                        <Badge className={getPriorityColor(ticket.priority)}>
+                        <Badge className={`${getPriorityColor(ticket.priority)} text-xs`}>
                           {ticket.priority.toUpperCase()}
                         </Badge>
-                        <Badge className={getStatusColor(ticket.status)}>
+                        <Badge className={`${getStatusColor(ticket.status)} text-xs`}>
                           {ticket.status.replace('_', ' ').toUpperCase()}
                         </Badge>
-                        <div className="flex items-center gap-1 text-muted-foreground">
-                          {getCategoryIcon(ticket.category)}
-                          <span className="text-sm capitalize">{ticket.category}</span>
-                        </div>
                       </div>
                       
-                      <h3 className="font-semibold mb-1">{ticket.subject}</h3>
-                      <p className="text-sm text-muted-foreground mb-2 line-clamp-2">
+                      <h3 className="font-semibold mb-1 text-sm sm:text-base truncate">{ticket.subject}</h3>
+                      <p className="text-xs sm:text-sm text-muted-foreground mb-2 line-clamp-2">
                         {ticket.description}
                       </p>
                       
-                      <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                      <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
                         <div className="flex items-center gap-1">
                           <User className="h-3 w-3" />
-                          {ticket.user_name}
+                          <span className="truncate max-w-[100px]">{ticket.user_name}</span>
                         </div>
                         <div className="flex items-center gap-1">
                           <Calendar className="h-3 w-3" />
@@ -414,102 +410,79 @@ const GerenciarChamados = () => {
                       </div>
                     </div>
                     
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 self-start">
                       <Dialog>
                         <DialogTrigger asChild>
                           <Button
                             variant="outline"
                             size="sm"
                             onClick={() => setSelectedTicket(ticket)}
+                            className="text-xs"
                           >
-                            <Eye className="h-4 w-4 mr-1" />
+                            <Eye className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
                             Ver
                           </Button>
                         </DialogTrigger>
-                        <DialogContent className="max-w-2xl">
+                        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                           <DialogHeader>
-                            <DialogTitle>Chamado {ticket.ticket_number}</DialogTitle>
+                            <DialogTitle className="text-base sm:text-lg">Chamado {ticket.ticket_number}</DialogTitle>
                           </DialogHeader>
                           
                           <div className="space-y-4">
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                               <div>
-                                <label className="text-sm font-medium">Usuário</label>
-                                <p className="text-sm">{ticket.user_name} ({ticket.user_email})</p>
+                                <label className="text-xs sm:text-sm font-medium">Usuário</label>
+                                <p className="text-xs sm:text-sm">{ticket.user_name} ({ticket.user_email})</p>
                               </div>
                               <div>
-                                <label className="text-sm font-medium">Data de Abertura</label>
-                                <p className="text-sm">{new Date(ticket.created_at).toLocaleString('pt-BR')}</p>
+                                <label className="text-xs sm:text-sm font-medium">Data de Abertura</label>
+                                <p className="text-xs sm:text-sm">{new Date(ticket.created_at).toLocaleString('pt-BR')}</p>
                               </div>
                             </div>
                             
                             <div>
-                              <label className="text-sm font-medium">Assunto</label>
-                              <p className="text-sm">{ticket.subject}</p>
+                              <label className="text-xs sm:text-sm font-medium">Assunto</label>
+                              <p className="text-xs sm:text-sm">{ticket.subject}</p>
                             </div>
                             
                             <div>
-                              <label className="text-sm font-medium">Descrição</label>
-                              <p className="text-sm whitespace-pre-wrap">{ticket.description}</p>
+                              <label className="text-xs sm:text-sm font-medium">Descrição</label>
+                              <p className="text-xs sm:text-sm whitespace-pre-wrap">{ticket.description}</p>
                             </div>
                             
                             {ticket.resolution && (
                               <div>
-                                <label className="text-sm font-medium">Resolução</label>
-                                <p className="text-sm whitespace-pre-wrap bg-green-50 dark:bg-green-950 p-3 rounded">
+                                <label className="text-xs sm:text-sm font-medium">Resolução</label>
+                                <p className="text-xs sm:text-sm whitespace-pre-wrap bg-green-50 dark:bg-green-900/20 p-3 rounded-md">
                                   {ticket.resolution}
                                 </p>
                               </div>
                             )}
-                            
-                            {ticket.satisfaction_comment && (
-                              <div>
-                                <label className="text-sm font-medium">Comentário do Cliente</label>
-                                <p className="text-sm bg-blue-50 dark:bg-blue-950 p-3 rounded">
-                                  {ticket.satisfaction_comment}
-                                </p>
-                              </div>
-                            )}
-                            
+
                             {ticket.status !== 'resolvido' && ticket.status !== 'fechado' && (
-                              <div className="border-t pt-4">
-                                <label className="text-sm font-medium mb-2 block">Responder</label>
+                              <div className="space-y-3 pt-4 border-t">
+                                <label className="text-xs sm:text-sm font-medium">Responder</label>
                                 <Textarea
                                   placeholder="Digite sua resposta..."
                                   value={resolution}
                                   onChange={(e) => setResolution(e.target.value)}
                                   rows={4}
+                                  className="text-sm"
                                 />
-                                <div className="flex justify-end gap-2 mt-3">
-                                  <Button
-                                    onClick={handleRespond}
-                                    disabled={isResponding || !resolution.trim()}
-                                  >
-                                    <Reply className="h-4 w-4 mr-1" />
-                                    {isResponding ? 'Enviando...' : 'Responder'}
-                                  </Button>
-                                </div>
+                                <Button
+                                  onClick={handleRespond}
+                                  disabled={isResponding || !resolution.trim()}
+                                  className="w-full sm:w-auto"
+                                  size="sm"
+                                >
+                                  <Reply className="h-4 w-4 mr-2" />
+                                  {isResponding ? 'Enviando...' : 'Enviar Resposta'}
+                                </Button>
                               </div>
                             )}
                           </div>
                         </DialogContent>
                       </Dialog>
-                      
-                      {ticket.status !== 'resolvido' && ticket.status !== 'fechado' && (
-                        <Select
-                          value={ticket.status}
-                          onValueChange={(value) => handleStatusChange(ticket.id, value)}
-                        >
-                          <SelectTrigger className="w-32">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="aberto">Aberto</SelectItem>
-                            <SelectItem value="em_andamento">Em Andamento</SelectItem>
-                            <SelectItem value="resolvido">Resolver</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      )}
                     </div>
                   </div>
                 </div>

@@ -17,6 +17,7 @@ import {
   History
 } from 'lucide-react';
 import { toast } from 'sonner';
+import DashboardTitleCard from '@/components/dashboard/DashboardTitleCard';
 import { cupomApiService, Cupom } from '@/services/cupomApiService';
 import CupomFormModal from '@/components/cupons/admin/CupomFormModal';
 import DeleteConfirmDialog from '@/components/cupons/admin/DeleteConfirmDialog';
@@ -186,15 +187,15 @@ const AdminCupons = () => {
 
   const getStatusBadge = (cupom: Cupom) => {
     if (cupom.status === 'inativo') {
-      return <Badge variant="secondary">Inativo</Badge>;
+      return <Badge variant="secondary" className="text-xs">Inativo</Badge>;
     }
     if (cupom.valido_ate && new Date(cupom.valido_ate) < new Date()) {
-      return <Badge variant="destructive">Expirado</Badge>;
+      return <Badge variant="destructive" className="text-xs">Expirado</Badge>;
     }
     if (cupom.uso_limite && cupom.uso_atual >= cupom.uso_limite) {
-      return <Badge variant="destructive">Esgotado</Badge>;
+      return <Badge variant="destructive" className="text-xs">Esgotado</Badge>;
     }
-    return <Badge variant="default">Ativo</Badge>;
+    return <Badge variant="default" className="text-xs">Ativo</Badge>;
   };
 
   const calculateStats = () => {
@@ -212,7 +213,13 @@ const AdminCupons = () => {
 
   if (isLoading) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
+        <DashboardTitleCard
+          title="Gerenciar Cupons"
+          subtitle="Crie e gerencie cupons de desconto"
+          icon={<Ticket className="h-4 w-4 sm:h-5 sm:w-5" />}
+          backTo="/dashboard/admin"
+        />
         <div className="flex items-center justify-center py-12">
           <RefreshCw className="w-8 h-8 animate-spin text-primary" />
         </div>
@@ -221,89 +228,97 @@ const AdminCupons = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
+      <DashboardTitleCard
+        title="Gerenciar Cupons"
+        subtitle="Crie e gerencie cupons de desconto"
+        icon={<Ticket className="h-4 w-4 sm:h-5 sm:w-5" />}
+        backTo="/dashboard/admin"
+        right={
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={loadCupons}
+              disabled={isLoading}
+              className="h-9 w-9"
+            >
+              <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+            </Button>
+            <Button onClick={handleCreateCupom} size="sm" className="hidden sm:flex">
+              <Plus className="h-4 w-4 mr-2" />
+              Novo Cupom
+            </Button>
+            <Button onClick={handleCreateCupom} size="icon" className="sm:hidden h-9 w-9">
+              <Plus className="h-4 w-4" />
+            </Button>
+          </div>
+        }
+      />
+
       {/* Estatísticas */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+          <CardHeader className="pb-2 p-3 sm:p-6">
+            <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground flex items-center gap-2">
               <Ticket className="h-4 w-4" />
-              Total Cupons
+              <span className="truncate">Total Cupons</span>
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.total}</div>
+          <CardContent className="p-3 sm:p-6 pt-0">
+            <div className="text-xl sm:text-2xl font-bold">{stats.total}</div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+          <CardHeader className="pb-2 p-3 sm:p-6">
+            <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground flex items-center gap-2">
               <TrendingUp className="h-4 w-4" />
-              Cupons Ativos
+              <span className="truncate">Ativos</span>
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">{stats.ativos}</div>
+          <CardContent className="p-3 sm:p-6 pt-0">
+            <div className="text-xl sm:text-2xl font-bold text-green-600">{stats.ativos}</div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+          <CardHeader className="pb-2 p-3 sm:p-6">
+            <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground flex items-center gap-2">
               <Calendar className="h-4 w-4" />
-              Expirados
+              <span className="truncate">Expirados</span>
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-red-600">{stats.expirados}</div>
+          <CardContent className="p-3 sm:p-6 pt-0">
+            <div className="text-xl sm:text-2xl font-bold text-red-600">{stats.expirados}</div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+          <CardHeader className="pb-2 p-3 sm:p-6">
+            <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground flex items-center gap-2">
               <Users className="h-4 w-4" />
-              Total Usos
+              <span className="truncate">Total Usos</span>
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-blue-600">{stats.totalUsos}</div>
+          <CardContent className="p-3 sm:p-6 pt-0">
+            <div className="text-xl sm:text-2xl font-bold text-blue-600">{stats.totalUsos}</div>
           </CardContent>
         </Card>
       </div>
 
       {/* Gerenciamento de Cupons */}
       <Card>
-        <CardHeader>
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div>
-              <CardTitle className="flex items-center gap-2">
-                <Ticket className="h-5 w-5" />
-                Gerenciamento de Cupons
-              </CardTitle>
-              <p className="text-sm text-muted-foreground mt-1">
-                Crie e gerencie cupons de desconto e bônus
-              </p>
-            </div>
-            <div className="flex items-center gap-2 w-full sm:w-auto">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={loadCupons}
-                disabled={isLoading}
-              >
-                <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
-                Atualizar
-              </Button>
-              <Button onClick={handleCreateCupom} className="w-full sm:w-auto">
-                <Plus className="h-4 w-4 mr-2" />
-                Novo Cupom
-              </Button>
-            </div>
-          </div>
+        <CardHeader className="p-3 sm:p-6">
+          <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+            <Ticket className="h-4 w-4 sm:h-5 sm:w-5" />
+            Lista de Cupons
+          </CardTitle>
+          <p className="text-xs sm:text-sm text-muted-foreground mt-1">
+            Crie e gerencie cupons de desconto e bônus
+          </p>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-3 sm:p-6 pt-0">
           {/* Busca e Filtros */}
           <div className="space-y-3 mb-4">
             <div className="relative">
@@ -312,7 +327,7 @@ const AdminCupons = () => {
                 placeholder="Buscar por código ou descrição..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
+                className="pl-10 text-sm"
               />
             </div>
 
@@ -321,6 +336,7 @@ const AdminCupons = () => {
                 variant={filterStatus === 'all' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => setFilterStatus('all')}
+                className="text-xs sm:text-sm"
               >
                 Todos ({cupons.length})
               </Button>
@@ -328,6 +344,7 @@ const AdminCupons = () => {
                 variant={filterStatus === 'ativo' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => setFilterStatus('ativo')}
+                className="text-xs sm:text-sm"
               >
                 Ativos ({cupons.filter(c => c.status === 'ativo').length})
               </Button>
@@ -335,15 +352,73 @@ const AdminCupons = () => {
                 variant={filterStatus === 'inativo' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => setFilterStatus('inativo')}
+                className="text-xs sm:text-sm"
               >
                 Inativos ({cupons.filter(c => c.status === 'inativo').length})
               </Button>
             </div>
           </div>
 
-          {/* Lista de Cupons */}
+          {/* Lista de Cupons - Mobile Cards */}
+          <div className="md:hidden space-y-3">
+            {filteredCupons.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <Ticket className="h-10 w-10 mx-auto mb-3 opacity-50" />
+                <p className="font-medium text-sm">Nenhum cupom encontrado</p>
+              </div>
+            ) : (
+              filteredCupons.map((cupom) => (
+                <Card key={cupom.id} className="p-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <Badge variant="outline" className="font-mono text-xs">
+                          {cupom.codigo}
+                        </Badge>
+                        {getStatusBadge(cupom)}
+                      </div>
+                      <p className="text-xs text-muted-foreground truncate mb-2">
+                        {cupom.descricao || '-'}
+                      </p>
+                      <div className="flex items-center gap-3 text-xs">
+                        <span className="font-medium">
+                          {cupom.tipo === 'fixo' 
+                            ? formatBrazilianCurrency(cupom.valor)
+                            : `${cupom.valor}%`
+                          }
+                        </span>
+                        <span className="text-muted-foreground">
+                          {cupom.uso_atual}{cupom.uso_limite && `/${cupom.uso_limite}`} usos
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleEditCupom(cupom)}
+                        className="h-8 w-8 p-0"
+                      >
+                        <Edit2 className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDeleteCupom(cupom)}
+                        className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </Card>
+              ))
+            )}
+          </div>
+
+          {/* Lista de Cupons - Desktop Table */}
           {filteredCupons.length > 0 ? (
-            <div className="rounded-md border overflow-x-auto">
+            <div className="hidden md:block rounded-md border overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -426,7 +501,7 @@ const AdminCupons = () => {
               </Table>
             </div>
           ) : (
-            <div className="text-center py-12 text-muted-foreground">
+            <div className="hidden md:block text-center py-12 text-muted-foreground">
               <Ticket className="h-12 w-12 mx-auto mb-4 opacity-50" />
               <p className="font-medium">Nenhum cupom encontrado</p>
               <p className="text-sm mt-2">
@@ -442,18 +517,49 @@ const AdminCupons = () => {
 
       {/* Histórico de Uso */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <History className="h-5 w-5" />
-            Histórico de Uso de Cupons
+        <CardHeader className="p-3 sm:p-6">
+          <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+            <History className="h-4 w-4 sm:h-5 sm:w-5" />
+            Histórico de Uso
           </CardTitle>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-xs sm:text-sm text-muted-foreground">
             Últimos cupons utilizados pelos usuários
           </p>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-3 sm:p-6 pt-0">
+          {/* Mobile Cards */}
+          <div className="md:hidden space-y-3">
+            {historico.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground text-sm">
+                Nenhum cupom utilizado ainda
+              </div>
+            ) : (
+              historico.slice(0, 10).map((item) => (
+                <Card key={item.id} className="p-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                      <Badge variant="outline" className="font-mono text-xs mb-1">
+                        {item.codigo}
+                      </Badge>
+                      <p className="text-xs text-muted-foreground truncate">
+                        {item.user_email || `Usuário #${item.user_id}`}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {formatDate(item.used_at)}
+                      </p>
+                    </div>
+                    <span className="text-sm font-bold text-green-600 flex-shrink-0">
+                      {formatBrazilianCurrency(item.valor_desconto)}
+                    </span>
+                  </div>
+                </Card>
+              ))
+            )}
+          </div>
+
+          {/* Desktop Table */}
           {historico.length > 0 ? (
-            <div className="rounded-md border overflow-x-auto">
+            <div className="hidden md:block rounded-md border overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -492,11 +598,11 @@ const AdminCupons = () => {
               </Table>
             </div>
           ) : (
-            <div className="text-center py-12 text-muted-foreground">
+            <div className="hidden md:block text-center py-12 text-muted-foreground">
               <History className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p className="font-medium">Nenhum cupom foi usado ainda</p>
+              <p className="font-medium">Nenhum cupom utilizado ainda</p>
               <p className="text-sm mt-2">
-                O histórico aparecerá aqui quando os usuários começarem a usar cupons
+                Quando usuários utilizarem cupons, o histórico aparecerá aqui
               </p>
             </div>
           )}
@@ -506,20 +612,14 @@ const AdminCupons = () => {
       {/* Modais */}
       <CupomFormModal
         isOpen={showFormModal}
-        onClose={() => {
-          setShowFormModal(false);
-          setSelectedCupom(null);
-        }}
-        onSave={handleFormSave}
+        onClose={() => setShowFormModal(false)}
         cupom={selectedCupom}
+        onSave={handleFormSave}
       />
 
       <DeleteConfirmDialog
         isOpen={showDeleteDialog}
-        onClose={() => {
-          setShowDeleteDialog(false);
-          setSelectedCupom(null);
-        }}
+        onClose={() => setShowDeleteDialog(false)}
         onConfirm={confirmDelete}
         cupomCodigo={selectedCupom?.codigo || ''}
       />
