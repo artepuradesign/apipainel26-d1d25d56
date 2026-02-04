@@ -138,10 +138,7 @@ const AdicionarSaldo = () => {
   }, [showPixModal, pixResponse?.payment_id, paymentToastId]);
 
   const paymentMethods = [
-    { id: 'pix', name: 'PIX', description: 'Aprovação instantânea' },
-    { id: 'credit', name: 'Cartão de Crédito', description: 'Em breve' },
-    { id: 'boleto', name: 'Boleto', description: 'Em breve' },
-    { id: 'crypto', name: 'Criptomoeda', description: 'Em breve' }
+    { id: 'pix', name: 'PIX', description: 'Aprovação instantânea' }
   ];
 
   const finalAmount = selectedAmount > 0 ? selectedAmount : parseFloat(customAmount) || 0;
@@ -377,12 +374,12 @@ const AdicionarSaldo = () => {
   };
 
   return (
-    <div className="space-y-6 max-w-6xl mx-auto">
+    <div className="space-y-4 sm:space-y-6 max-w-6xl mx-auto px-2 sm:px-0">
       {/* Header */}
-      <div className="space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight">Adicionar Saldo</h1>
-        <p className="text-muted-foreground">
-          Escolha o método de pagamento e o valor para recarregar sua conta
+      <div className="space-y-1 sm:space-y-2">
+        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight">Adicionar Saldo</h1>
+        <p className="text-sm sm:text-base text-muted-foreground">
+          Escolha o método de pagamento e o valor para recarregar
         </p>
       </div>
 
@@ -390,26 +387,24 @@ const AdicionarSaldo = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* 1. Método de Pagamento */}
         <Card className="h-fit">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <CreditCard className="w-5 h-5" />
+          <CardHeader className="pb-3 sm:pb-6">
+            <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+              <CreditCard className="w-4 h-4 sm:w-5 sm:h-5" />
               Método de Pagamento
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-xs sm:text-sm">
               Selecione como deseja adicionar saldo
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="grid grid-cols-1 gap-3">
+          <CardContent className="space-y-4 sm:space-y-6">
+            <div className="grid grid-cols-1 gap-2 sm:gap-3">
               {paymentMethods.map((method) => (
                 <label
                   key={method.id}
-                  className={`flex items-center p-4 border rounded-lg transition-all duration-200 ${
+                  className={`flex items-center p-3 sm:p-4 border rounded-lg transition-all duration-200 ${
                     paymentMethod === method.id
                       ? 'border-primary bg-primary/5 shadow-sm'
-                      : method.id === 'pix'
-                      ? 'border-border hover:border-primary/50 hover:shadow-sm cursor-pointer'
-                      : 'border-border opacity-50 cursor-not-allowed'
+                      : 'border-border hover:border-primary/50 hover:shadow-sm cursor-pointer'
                   }`}
                 >
                   <input
@@ -419,62 +414,56 @@ const AdicionarSaldo = () => {
                     checked={paymentMethod === method.id}
                     onChange={(e) => setPaymentMethod(e.target.value)}
                     className="sr-only"
-                    disabled={method.id !== 'pix'}
                   />
                   <div className="flex-1">
-                    <div className="flex items-center gap-3">
-                      {method.id === 'pix' && <Zap className="w-5 h-5 text-primary" />}
-                      {method.id !== 'pix' && <CreditCard className="w-5 h-5" />}
-                      <span className="font-medium">{method.name}</span>
-                      {method.id === 'pix' && (
-                        <span className="text-xs bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 px-2 py-1 rounded-full font-medium">
-                          Instantâneo
-                        </span>
-                      )}
+                    <div className="flex items-center gap-2 sm:gap-3">
+                      <Zap className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
+                      <span className="font-medium text-sm sm:text-base">{method.name}</span>
+                      <span className="text-[10px] sm:text-xs bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full font-medium">
+                        Instantâneo
+                      </span>
                     </div>
-                    <p className="text-xs text-muted-foreground mt-1 ml-8">
+                    <p className="text-[10px] sm:text-xs text-muted-foreground mt-1 ml-6 sm:ml-8">
                       {method.description}
                     </p>
                   </div>
-                  {method.id !== 'pix' && (
-                    <span className="text-xs text-muted-foreground font-medium">Em breve</span>
-                  )}
                 </label>
               ))}
             </div>
 
-            {/* Cupom de Desconto - Movido para dentro do Método de Pagamento */}
-            <div className="pt-4 border-t">
-              <div className="flex items-center gap-2 mb-3">
-                <Ticket className="w-4 h-4 text-muted-foreground" />
-                <span className="text-sm font-medium">Cupom de Desconto</span>
+            {/* Cupom de Desconto */}
+            <div className="pt-3 sm:pt-4 border-t">
+              <div className="flex items-center gap-2 mb-2 sm:mb-3">
+                <Ticket className="w-3 h-3 sm:w-4 sm:h-4 text-muted-foreground" />
+                <span className="text-xs sm:text-sm font-medium">Cupom de Desconto</span>
               </div>
               {!cupomAplicado ? (
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-2">
                   <Input
                     placeholder="Digite o código"
                     value={cupomCodigo}
                     onChange={(e) => setCupomCodigo(e.target.value.toUpperCase())}
                     disabled={isValidatingCupom}
-                    className="flex-1"
+                    className="flex-1 text-sm"
                   />
                   <Button
                     onClick={handleValidateCupom}
                     disabled={!cupomCodigo.trim() || isValidatingCupom}
                     variant="outline"
+                    className="w-full sm:w-auto"
                   >
                     {isValidatingCupom ? 'Validando...' : 'Aplicar'}
                   </Button>
                 </div>
               ) : (
-                <div className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+                <div className="flex items-center justify-between p-2 sm:p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
                   <div className="flex items-center gap-2">
-                    <Ticket className="w-4 h-4 text-green-600 dark:text-green-300" />
+                    <Ticket className="w-3 h-3 sm:w-4 sm:h-4 text-green-600 dark:text-green-300" />
                     <div>
-                      <p className="text-sm font-medium text-green-800 dark:text-green-200">
+                      <p className="text-xs sm:text-sm font-medium text-green-800 dark:text-green-200">
                         {cupomAplicado.codigo}
                       </p>
-                      <p className="text-xs text-green-600 dark:text-green-400">
+                      <p className="text-[10px] sm:text-xs text-green-600 dark:text-green-400">
                         -{formatBrazilianCurrency(descontoCupom)}
                       </p>
                     </div>
@@ -483,7 +472,7 @@ const AdicionarSaldo = () => {
                     onClick={handleRemoveCupom}
                     variant="ghost"
                     size="sm"
-                    className="h-8 text-xs"
+                    className="h-7 sm:h-8 text-[10px] sm:text-xs"
                   >
                     Remover
                   </Button>

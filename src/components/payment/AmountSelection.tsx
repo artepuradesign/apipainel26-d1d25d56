@@ -34,7 +34,7 @@ const AmountSelection: React.FC<AmountSelectionProps> = ({
   isProcessing,
   onPayment
 }) => {
-  const predefinedAmounts = [50, 100, 250, 500];
+  const predefinedAmounts = [10, 25, 50, 100, 250, 500];
 
   const handleAmountSelect = (amount: number) => {
     onAmountSelect(amount);
@@ -46,49 +46,49 @@ const AmountSelection: React.FC<AmountSelectionProps> = ({
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Plus className="w-5 h-5" />
+      <CardHeader className="pb-3 sm:pb-6">
+        <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+          <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
           Escolha o Valor
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-6">
-        <div className="space-y-3">
-          <Label htmlFor="custom-amount" className="text-sm font-medium">
+      <CardContent className="space-y-4 sm:space-y-6">
+        <div className="space-y-2 sm:space-y-3">
+          <Label htmlFor="custom-amount" className="text-xs sm:text-sm font-medium">
             Valor Personalizado
           </Label>
           <div className="relative">
-            <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground font-medium">
+            <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground font-medium text-sm sm:text-base">
               R$
             </span>
             <Input
               id="custom-amount"
               type="number"
-              min="50"
+              min="10"
               max="10000"
               step="0.01"
               placeholder="0,00"
               value={customAmount}
               onChange={(e) => handleCustomChange(e.target.value)}
-              className="text-lg h-12 font-semibold pl-8"
+              className="text-base sm:text-lg h-10 sm:h-12 font-semibold pl-8 sm:pl-10"
             />
           </div>
           <p className="text-xs text-muted-foreground">
-            Valor mínimo: R$ 50,00
+            Valor mínimo: R$ 10,00
           </p>
         </div>
         
-        <div className="pt-4 border-t">
-          <Label className="text-sm font-medium mb-3 block">
+        <div className="pt-3 sm:pt-4 border-t">
+          <Label className="text-xs sm:text-sm font-medium mb-2 sm:mb-3 block">
             Valores Sugeridos
           </Label>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-3 gap-2 sm:gap-3">
             {predefinedAmounts.map((amount) => (
               <Button
                 key={amount}
                 variant={selectedAmount === amount ? "default" : "outline"}
                 onClick={() => handleAmountSelect(amount)}
-                className="h-12 text-sm font-semibold"
+                className="h-10 sm:h-12 text-xs sm:text-sm font-semibold"
               >
                 R$ {amount.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </Button>
@@ -98,12 +98,12 @@ const AmountSelection: React.FC<AmountSelectionProps> = ({
 
         {/* Resumo de Pagamento */}
         {finalAmount > 0 && (
-          <div className="pt-4 border-t space-y-3">
-            <Label className="text-sm font-medium">
+          <div className="pt-3 sm:pt-4 border-t space-y-2 sm:space-y-3">
+            <Label className="text-xs sm:text-sm font-medium">
               Resumo do Pagamento
             </Label>
             
-            <div className="space-y-2 text-sm">
+            <div className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Valor selecionado:</span>
                 <span>{formatBrazilianCurrency(finalAmount)}</span>
@@ -116,7 +116,7 @@ const AmountSelection: React.FC<AmountSelectionProps> = ({
               )}
               <div className="flex justify-between items-center pt-2 border-t">
                 <span className="font-medium">Total a pagar:</span>
-                <span className="text-xl font-bold">
+                <span className="text-lg sm:text-xl font-bold">
                   {formatBrazilianCurrency(valorFinalPagamento)}
                 </span>
               </div>
@@ -130,7 +130,7 @@ const AmountSelection: React.FC<AmountSelectionProps> = ({
             >
               {isProcessing ? (
                 <>
-                  <Loader2 className="w-4 w-4 mr-2 animate-spin" />
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                   Processando...
                 </>
               ) : valorFinalPagamento <= 0 && cupomAplicado ? (
