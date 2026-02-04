@@ -40,9 +40,28 @@ const DashboardLayout = ({
   }, []);
   const { panelMenus, isLoading: panelsLoading } = usePanelMenus();
   
-  // Sidebar expandida apenas em desktop (>1024px), colapsada em tablets
-  const isDesktop = window.matchMedia('(min-width: 1025px)').matches;
-  const [collapsed, setCollapsed] = useState(!isDesktop);
+  // Sidebar expandida em desktop (>1024px), colapsada em tablets e mobile
+  const [collapsed, setCollapsed] = useState(() => {
+    // Usar valor inicial baseado no tamanho da tela
+    if (typeof window !== 'undefined') {
+      return window.innerWidth <= 1024;
+    }
+    return false;
+  });
+  
+  // Atualizar estado quando a tela redimensionar
+  useEffect(() => {
+    const handleResize = () => {
+      const isDesktop = window.innerWidth > 1024;
+      setCollapsed(!isDesktop);
+    };
+    
+    // Definir estado inicial correto após mount
+    handleResize();
+    
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
   
   // Prevenir duplicação de notificações
   useNotificationDuplicationPrevention();

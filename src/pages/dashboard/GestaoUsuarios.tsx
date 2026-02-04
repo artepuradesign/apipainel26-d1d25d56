@@ -341,34 +341,35 @@ const GestaoUsuarios = () => {
       <UserStatsCards stats={stats} />
 
       <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
+        <CardHeader className="p-4 lg:p-6">
+          <div className="flex flex-col space-y-3 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
             <div>
-              <CardTitle className="flex items-center gap-2">
-                <Users className="h-5 w-5" />
+              <CardTitle className="flex items-center gap-2 text-base lg:text-lg">
+                <Users className="h-4 w-4 lg:h-5 lg:w-5" />
                 Gestão de Usuários
               </CardTitle>
-              <p className="text-sm text-muted-foreground mt-1">
+              <p className="text-xs lg:text-sm text-muted-foreground mt-1">
                 Gerencie todos os usuários do sistema
               </p>
             </div>
             <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={exportUsers} disabled={loading}>
-                <Download className="h-4 w-4 mr-2" />
-                Exportar
+              <Button variant="outline" size="sm" onClick={exportUsers} disabled={loading} className="text-xs lg:text-sm">
+                <Download className="h-3 w-3 lg:h-4 lg:w-4 mr-1 lg:mr-2" />
+                <span className="hidden sm:inline">Exportar</span>
               </Button>
-              <Button size="sm" onClick={() => setShowAddForm(!showAddForm)} disabled={loading}>
+              <Button size="sm" onClick={() => setShowAddForm(!showAddForm)} disabled={loading} className="text-xs lg:text-sm">
                 {loading ? (
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  <Loader2 className="h-3 w-3 lg:h-4 lg:w-4 mr-1 lg:mr-2 animate-spin" />
                 ) : (
-                  <Plus className="h-4 w-4 mr-2" />
+                  <Plus className="h-3 w-3 lg:h-4 lg:w-4 mr-1 lg:mr-2" />
                 )}
-                Novo Usuário
+                <span className="hidden sm:inline">Novo Usuário</span>
+                <span className="sm:hidden">Novo</span>
               </Button>
             </div>
           </div>
         </CardHeader>
-        <CardContent className="space-y-6">
+        <CardContent className="space-y-4 lg:space-y-6 p-4 lg:p-6">
           <UserFilters
             searchTerm={searchTerm}
             setSearchTerm={setSearchTerm}

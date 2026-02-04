@@ -670,6 +670,12 @@ class DashboardAdminController {
     
     public function deleteUser($userId) {
         try {
+            // Verificar se userId é válido
+            if (!$userId || !is_numeric($userId)) {
+                Response::error('ID de usuário inválido', 400);
+                return;
+            }
+            
             // Verificar se usuário existe
             $checkQuery = "SELECT id FROM users WHERE id = ?";
             $checkStmt = $this->db->prepare($checkQuery);
@@ -683,66 +689,73 @@ class DashboardAdminController {
             $this->db->beginTransaction();
             
             // Excluir dados relacionados em ordem para evitar problemas de chave estrangeira
+            // Usando try-catch individual para cada tabela (algumas podem não existir)
             
-            // 1. Excluir sessões do usuário
-            $sessionQuery = "DELETE FROM user_sessions WHERE user_id = ?";
-            $sessionStmt = $this->db->prepare($sessionQuery);
-            $sessionStmt->execute([$userId]);
+            $tablesToClean = [
+                ['table' => 'user_sessions', 'column' => 'user_id', 'action' => 'DELETE'],
+                ['table' => 'user_subscriptions', 'column' => 'user_id', 'action' => 'DELETE'],
+                ['table' => 'user_audit', 'column' => 'user_id', 'action' => 'DELETE'],
+                ['table' => 'user_wallets', 'column' => 'user_id', 'action' => 'DELETE'],
+                ['table' => 'wallet_transactions', 'column' => 'user_id', 'action' => 'DELETE'],
+                ['table' => 'user_settings', 'column' => 'user_id', 'action' => 'DELETE'],
+                ['table' => 'user_profiles', 'column' => 'user_id', 'action' => 'DELETE'],
+                ['table' => 'consultations', 'column' => 'user_id', 'action' => 'DELETE'],
+                ['table' => 'notifications', 'column' => 'user_id', 'action' => 'DELETE'],
+            ];
             
-            // 2. Excluir assinaturas do usuário
-            $subscriptionQuery = "DELETE FROM user_subscriptions WHERE user_id = ?";
-            $subscriptionStmt = $this->db->prepare($subscriptionQuery);
-            $subscriptionStmt->execute([$userId]);
+            foreach ($tablesToClean as $tableInfo) {
+                try {
+                    $query = "DELETE FROM {$tableInfo['table']} WHERE {$tableInfo['column']} = ?";
+                    $stmt = $this->db->prepare($query);
+                    $stmt->execute([$userId]);
+                } catch (Exception $e) {
+                    // Tabela pode não existir - continuar
+                    error_log("DELETE_USER: Tabela {$tableInfo['table']} não encontrada ou erro: " . $e->getMessage());
+                }
+            }
             
-            // 3. Excluir auditoria do usuário
-            $auditQuery = "DELETE FROM user_audit WHERE user_id = ?";
-            $auditStmt = $this->db->prepare($auditQuery);
-            $auditStmt->execute([$userId]);
+            // Atualizar referências para NULL (não deletar)
+            $tablesToNullify = [
+                ['table' => 'central_cash', 'column' => 'user_id'],
+                ['table' => 'system_logs', 'column' => 'user_id'],
+            ];
             
-            // 4. Excluir carteiras do usuário
-            $walletQuery = "DELETE FROM user_wallets WHERE user_id = ?";
-            $walletStmt = $this->db->prepare($walletQuery);
-            $walletStmt->execute([$userId]);
+            foreach ($tablesToNullify as $tableInfo) {
+                try {
+                    $query = "UPDATE {$tableInfo['table']} SET {$tableInfo['column']} = NULL WHERE {$tableInfo['column']} = ?";
+                    $stmt = $this->db->prepare($query);
+                    $stmt->execute([$userId]);
+                } catch (Exception $e) {
+                    error_log("DELETE_USER: Erro ao nullificar {$tableInfo['table']}: " . $e->getMessage());
+                }
+            }
             
-            // 5. Excluir transações da carteira
-            $transactionQuery = "DELETE FROM wallet_transactions WHERE user_id = ?";
-            $transactionStmt = $this->db->prepare($transactionQuery);
-            $transactionStmt->execute([$userId]);
+            // Tratar indicações
+            try {
+                $indicationQuery = "DELETE FROM indicacoes WHERE indicado_id = ?";
+                $indicationStmt = $this->db->prepare($indicationQuery);
+                $indicationStmt->execute([$userId]);
+            } catch (Exception $e) {
+                error_log("DELETE_USER: Tabela indicacoes não encontrada: " . $e->getMessage());
+            }
             
-            // 6. Excluir configurações do usuário
-            $settingsQuery = "DELETE FROM user_settings WHERE user_id = ?";
-            $settingsStmt = $this->db->prepare($settingsQuery);
-            $settingsStmt->execute([$userId]);
+            // Atualizar usuários que este usuário indicou
+            try {
+                $updateIndicatorQuery = "UPDATE users SET indicador_id = NULL WHERE indicador_id = ?";
+                $updateIndicatorStmt = $this->db->prepare($updateIndicatorQuery);
+                $updateIndicatorStmt->execute([$userId]);
+            } catch (Exception $e) {
+                error_log("DELETE_USER: Erro ao atualizar indicador_id: " . $e->getMessage());
+            }
             
-            // 7. Excluir perfis do usuário
-            $profileQuery = "DELETE FROM user_profiles WHERE user_id = ?";
-            $profileStmt = $this->db->prepare($profileQuery);
-            $profileStmt->execute([$userId]);
-            
-            // 8. Atualizar referências em central_cash (SET NULL)
-            $cashQuery = "UPDATE central_cash SET user_id = NULL WHERE user_id = ?";
-            $cashStmt = $this->db->prepare($cashQuery);
-            $cashStmt->execute([$userId]);
-            
-            // 9. Atualizar referências em system_logs (SET NULL)
-            $logsQuery = "UPDATE system_logs SET user_id = NULL WHERE user_id = ?";
-            $logsStmt = $this->db->prepare($logsQuery);
-            $logsStmt->execute([$userId]);
-            
-            // 10. Excluir indicações onde o usuário é indicado
-            $indicationQuery = "DELETE FROM indicacoes WHERE indicado_id = ?";
-            $indicationStmt = $this->db->prepare($indicationQuery);
-            $indicationStmt->execute([$userId]);
-            
-            // 11. Atualizar usuários que este usuário indicou (SET NULL)
-            $updateIndicatorQuery = "UPDATE users SET indicador_id = NULL WHERE indicador_id = ?";
-            $updateIndicatorStmt = $this->db->prepare($updateIndicatorQuery);
-            $updateIndicatorStmt->execute([$userId]);
-            
-            // 12. Finalmente excluir o usuário
+            // Finalmente excluir o usuário
             $deleteUserQuery = "DELETE FROM users WHERE id = ?";
             $deleteUserStmt = $this->db->prepare($deleteUserQuery);
-            $deleteUserStmt->execute([$userId]);
+            $result = $deleteUserStmt->execute([$userId]);
+            
+            if (!$result) {
+                throw new Exception('Falha ao excluir usuário da tabela principal');
+            }
             
             $this->db->commit();
             
@@ -760,8 +773,22 @@ class DashboardAdminController {
     
     public function resetUserPassword($userId) {
         try {
+            // Verificar se userId é válido
+            if (!$userId || !is_numeric($userId)) {
+                Response::error('ID de usuário inválido', 400);
+                return;
+            }
+            
             $data = json_decode(file_get_contents("php://input"), true);
-            $newPassword = $data['new_password'] ?? '123456';
+            $newPassword = isset($data['new_password']) && !empty($data['new_password']) 
+                ? $data['new_password'] 
+                : '123456';
+            
+            // Validar senha mínima
+            if (strlen($newPassword) < 6) {
+                Response::error('A senha deve ter no mínimo 6 caracteres', 400);
+                return;
+            }
             
             // Verificar se usuário existe
             $checkQuery = "SELECT id FROM users WHERE id = ?";
