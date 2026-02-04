@@ -11,7 +11,6 @@ const ConsultarCpfSenhasCpf: React.FC = () => {
       moduleId={152}
       source="consultar-cpf-senhascpf"
       onlySection="senhas_cpf"
-      chargeAlwaysExceptHistory
     />
   );
 };

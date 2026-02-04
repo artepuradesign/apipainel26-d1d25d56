@@ -11,7 +11,6 @@ const ConsultarCpfAuxilioEmergencia: React.FC = () => {
       moduleId={148}
       source="consultar-cpf-auxilio-emergencia"
       onlySection="auxilio_emergencial"
-      chargeAlwaysExceptHistory
     />
   );
 };

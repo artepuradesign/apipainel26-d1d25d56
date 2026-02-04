@@ -11,7 +11,6 @@ const ConsultarCpfRais: React.FC = () => {
       moduleId={149}
       source="consultar-cpf-rais"
       onlySection="rais"
-      chargeAlwaysExceptHistory
     />
   );
 };

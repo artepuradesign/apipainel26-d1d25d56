@@ -698,12 +698,14 @@ const ConsultarCpfPuxaTudo: React.FC<ConsultarCpfPuxaTudoProps> = ({
     isRestrictToBasicAndEnderecos;
 
   // Nestes módulos, a consulta só deve ser cobrada se a seção principal vier com dados.
+  // Inclui todos os modos enxutos E todos os módulos com onlySection
   const isConditionalChargeModeRaw =
     isRestrictToBasicAndParentes ||
     isRestrictToBasicAndCertidao ||
     isRestrictToBasicAndTelefones ||
     isRestrictToBasicAndEmails ||
-    isRestrictToBasicAndEnderecos;
+    isRestrictToBasicAndEnderecos ||
+    isExclusiveMode; // Qualquer módulo com onlySection deve ter cobrança condicional
 
   // Para páginas específicas: sempre cobrar na busca manual (exceto histórico), então NÃO usar cobrança condicional.
   const isConditionalChargeMode =
@@ -1457,11 +1459,28 @@ const ConsultarCpfPuxaTudo: React.FC<ConsultarCpfPuxaTudoProps> = ({
   };
 
   const getConditionalRequiredCount = () => {
+    // Modos enxutos (rotas específicas)
     if (isRestrictToBasicAndParentes) return parentesCount;
     if (isRestrictToBasicAndCertidao) return certidaoNascimentoCount;
     if (isRestrictToBasicAndTelefones) return telefonesCount;
     if (isRestrictToBasicAndEmails) return emailsCount;
     if (isRestrictToBasicAndEnderecos) return enderecosCount;
+    
+    // Modos exclusivos (onlySection)
+    if (onlySection === 'cns') return cnsCount;
+    if (onlySection === 'pis') return result?.pis ? 1 : 0;
+    if (onlySection === 'titulo') return result?.titulo_eleitor ? 1 : 0;
+    if (onlySection === 'score') return (result?.score && result.score > 0) ? 1 : 0;
+    if (onlySection === 'vacinas') return vacinasCount;
+    if (onlySection === 'empresas_socio') return empresasSocioCount;
+    if (onlySection === 'cnpj_mei') return cnpjMeiCount;
+    if (onlySection === 'dividas_ativas') return dividasAtivasCount;
+    if (onlySection === 'auxilio_emergencial') return auxiliosEmergenciais?.length ?? 0;
+    if (onlySection === 'rais') return rais?.length ?? 0;
+    if (onlySection === 'inss') return inssCount;
+    if (onlySection === 'senhas_email') return senhaEmailCount;
+    if (onlySection === 'senhas_cpf') return senhaCpfCount;
+    
     return null;
   };
 

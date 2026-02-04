@@ -11,7 +11,6 @@ const ConsultarCpfPis: React.FC = () => {
       moduleId={139}
       source="consultar-cpf-pis"
       onlySection="pis"
-      chargeAlwaysExceptHistory
     />
   );
 };

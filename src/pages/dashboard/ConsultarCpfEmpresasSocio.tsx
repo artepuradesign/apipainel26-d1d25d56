@@ -11,7 +11,6 @@ const ConsultarCpfEmpresasSocio: React.FC = () => {
       moduleId={145}
       source="consultar-cpf-empresas-socio"
       onlySection="empresas_socio"
-      chargeAlwaysExceptHistory
     />
   );
 };
