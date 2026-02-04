@@ -65,11 +65,11 @@ const Sidebar = ({
               <button
                 onClick={handleToggleClick}
                 className={`
-                  absolute top-5 -right-3 z-50
-                  w-6 h-6 rounded-full
+                  absolute top-5 -right-2.5 z-50
+                  w-5 h-5 rounded-full
                   bg-white dark:bg-gray-800
-                  border-2 border-primary/30 dark:border-primary/50
-                  shadow-lg hover:shadow-xl
+                  border border-primary/40 dark:border-primary/50
+                  shadow-md hover:shadow-lg
                   flex items-center justify-center
                   transition-all duration-200
                   hover:bg-primary hover:border-primary
@@ -80,9 +80,9 @@ const Sidebar = ({
                 aria-label={collapsed ? 'Expandir menu' : 'Recolher menu'}
               >
                 {collapsed ? (
-                  <ChevronRight size={14} className="transition-transform group-hover:scale-110" />
+                  <ChevronRight size={12} className="transition-transform group-hover:scale-110" />
                 ) : (
-                  <ChevronLeft size={14} className="transition-transform group-hover:scale-110" />
+                  <ChevronLeft size={12} className="transition-transform group-hover:scale-110" />
                 )}
               </button>
             </TooltipTrigger>
