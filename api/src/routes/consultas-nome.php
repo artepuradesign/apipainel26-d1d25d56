@@ -194,35 +194,42 @@ function createConsultaNome($db, $userId) {
                 error_log("CONSULTAS_NOME: Erro ao registrar no caixa central: " . $e->getMessage());
             }
             
-            // Registrar transações usando WalletService
+            // Registrar transações na tabela wallet_transactions SEM atualizar saldo novamente
+            // (o saldo já foi atualizado nas linhas acima)
             try {
-                $walletService = new WalletService($db);
-                
                 if ($debitFromPlan > 0) {
-                    $walletService->createTransaction(
+                    $walletTxQuery = "INSERT INTO wallet_transactions (
+                        user_id, wallet_type, type, amount, balance_before, balance_after, 
+                        description, reference_type, reference_id, status, created_at
+                    ) VALUES (?, 'plan', 'consulta', ?, ?, ?, ?, 'consultation', ?, 'completed', NOW())";
+                    $walletTxStmt = $db->prepare($walletTxQuery);
+                    $walletTxStmt->execute([
                         $userId,
-                        'consulta',
                         $debitFromPlan,
+                        $saldoPlano,
+                        $newPlanBalance,
                         "Consulta Nome - {$document} (Saldo do Plano)",
-                        'consultation',
-                        $consultationId,
-                        'plan'
-                    );
+                        $consultationId
+                    ]);
                 }
                 
                 if ($debitFromWallet > 0) {
-                    $walletService->createTransaction(
+                    $walletTxQuery = "INSERT INTO wallet_transactions (
+                        user_id, wallet_type, type, amount, balance_before, balance_after, 
+                        description, reference_type, reference_id, status, created_at
+                    ) VALUES (?, 'main', 'consulta', ?, ?, ?, ?, 'consultation', ?, 'completed', NOW())";
+                    $walletTxStmt = $db->prepare($walletTxQuery);
+                    $walletTxStmt->execute([
                         $userId,
-                        'consulta',
                         $debitFromWallet,
+                        $saldoCarteira,
+                        $newWalletBalance,
                         "Consulta Nome - {$document} (Carteira Digital)",
-                        'consultation',
-                        $consultationId,
-                        'main'
-                    );
+                        $consultationId
+                    ]);
                 }
                 
-                error_log("CONSULTAS_NOME: Transações de wallet registradas");
+                error_log("CONSULTAS_NOME: Transações de wallet registradas (sem atualizar saldo novamente)");
             } catch (Exception $e) {
                 error_log("CONSULTAS_NOME: Erro ao registrar transação de wallet: " . $e->getMessage());
             }
